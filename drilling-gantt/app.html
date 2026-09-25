@@ -1,0 +1,2189 @@
+<title>Анализ графика бурения</title>
+<meta name="description" content="Откройте Excel-график строительства скважин: диаграммы всех процессов и поиск ошибок в датах, статусах и итогах.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --page: #eef1f3;
+  --surface: #fbfcfc;
+  --surface-2: #f3f5f7;
+  --raised: #ffffff;
+  --ink: #121a21;
+  --ink-2: #4a5661;
+  --muted: #66717c;
+  --rule: #d3d9de;
+  --grid: #e6eaed;
+  --grid-strong: #c5cdd3;
+  --drill: #2a78d6;
+  --vmr: #eb6834;
+  --krs: #1baf7a;
+  --grp: #eda100;
+  --idle: #848f99;
+  --on-drill: #ffffff;
+  --on-mid: #10161b;
+  --warn: #fab219;
+  --crit: #d03b3b;
+  --overlay: rgba(238, 241, 243, 0.9);
+  --shadow: 0 10px 30px rgba(18, 26, 33, 0.14), 0 1px 2px rgba(18, 26, 33, 0.08);
+  --pale: 0.4;
+  --f-body: "IBM Plex Sans", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-cond: "IBM Plex Sans Condensed", "Roboto Condensed", "Arial Narrow", "IBM Plex Sans", "Segoe UI", sans-serif;
+  --lab-w: 192px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d1216;
+    --surface: #151b20;
+    --surface-2: #1a2127;
+    --raised: #1e262d;
+    --ink: #e9eef2;
+    --ink-2: #b3bec7;
+    --muted: #8b98a3;
+    --rule: #2c363e;
+    --grid: #222a31;
+    --grid-strong: #36414a;
+    --drill: #3987e5;
+    --vmr: #d95926;
+    --krs: #199e70;
+    --grp: #c98500;
+    --idle: #6b7782;
+    --on-drill: #0b1016;
+    --on-mid: #0b1016;
+    --overlay: rgba(13, 18, 22, 0.9);
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+    --pale: 0.5;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d1216;
+  --surface: #151b20;
+  --surface-2: #1a2127;
+  --raised: #1e262d;
+  --ink: #e9eef2;
+  --ink-2: #b3bec7;
+  --muted: #8b98a3;
+  --rule: #2c363e;
+  --grid: #222a31;
+  --grid-strong: #36414a;
+  --drill: #3987e5;
+  --vmr: #d95926;
+  --krs: #199e70;
+  --grp: #c98500;
+  --idle: #6b7782;
+  --on-drill: #0b1016;
+  --on-mid: #0b1016;
+  --overlay: rgba(13, 18, 22, 0.9);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --pale: 0.5;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--page);
+  color: var(--ink);
+  font: 400 14px/1.5 var(--f-body);
+  -webkit-font-smoothing: antialiased;
+}
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-inline: 24px;
+  padding-block: 28px 56px;
+  display: grid;
+  gap: 24px;
+}
+.content { display: grid; gap: 24px; }
+h1, h2, h3 { font-family: var(--f-cond); font-weight: 600; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(28px, 4.2vw, 40px); line-height: 1.08; letter-spacing: -0.01em; }
+h2 { font-size: 21px; line-height: 1.2; }
+p { margin: 0; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* ——— шапка и файл ——— */
+.head { display: grid; gap: 14px; }
+.head-titles { display: grid; gap: 8px; }
+.eyebrow { font: 500 12px/1.3 var(--f-body); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.lede { color: var(--ink-2); max-width: 72ch; }
+.filebar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 12px 20px; padding: 12px 14px 12px 12px;
+  background: var(--surface); border: 1px dashed var(--grid-strong); border-radius: 8px;
+}
+.file-info { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 320px; }
+.file-ic { width: 30px; height: 36px; flex: none; }
+.file-ic .pg { fill: var(--surface-2); stroke: var(--grid-strong); }
+.file-ic .ln { stroke: var(--drill); stroke-width: 2; stroke-linecap: round; }
+.file-ic .ln2 { stroke: var(--krs); stroke-width: 2; stroke-linecap: round; }
+.file-ic .ln3 { stroke: var(--vmr); stroke-width: 2; stroke-linecap: round; }
+.file-text { display: grid; gap: 1px; min-width: 0; }
+.file-name { font: 600 15px/1.3 var(--f-cond); overflow-wrap: anywhere; }
+.file-meta { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.file-err { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--ink); margin-top: 4px; }
+.file-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--ink); background: var(--ink); color: var(--surface);
+  border-radius: 7px; padding: 8px 14px; font-size: 13.5px; font-weight: 500; cursor: pointer; white-space: nowrap;
+}
+.btn:hover { opacity: 0.9; }
+.btn:disabled { opacity: 0.55; cursor: progress; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+.privacy { font-size: 12.5px; color: var(--muted); }
+.spinner { width: 16px; height: 16px; border: 2px solid var(--grid-strong); border-top-color: var(--ink); border-radius: 50%; animation: spin 0.8s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+select.sel {
+  appearance: none;
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2366717c' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 10px center;
+  border: 1px solid var(--rule); border-radius: 6px; padding: 7px 30px 7px 10px;
+  font-weight: 500; color: var(--ink); max-width: 100%; cursor: pointer;
+}
+
+.empty {
+  display: grid; justify-items: center; text-align: center; gap: 14px;
+  padding: 48px 20px 44px; border: 2px dashed var(--grid-strong); border-radius: 12px; background: var(--surface);
+}
+.empty svg { width: 54px; height: 64px; }
+.empty p { color: var(--ink-2); max-width: 60ch; }
+.empty ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; text-align: left; color: var(--ink-2); font-size: 13.5px; }
+.empty li { display: flex; gap: 8px; align-items: baseline; }
+.empty li::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--drill); flex: none; transform: translateY(-1px); }
+.empty li:nth-child(2)::before { background: var(--vmr); }
+.empty li:nth-child(3)::before { background: var(--krs); }
+.empty li:nth-child(4)::before { background: var(--grp); }
+
+.drop-overlay {
+  position: fixed; inset: 0; z-index: 40; display: grid; place-items: center;
+  background: var(--overlay); pointer-events: none;
+}
+.drop-overlay div {
+  border: 3px dashed var(--drill); border-radius: 16px; padding: 40px 48px;
+  font: 600 24px/1.3 var(--f-cond); color: var(--ink); background: var(--surface); text-align: center;
+}
+
+/* ——— штамп ——— */
+.stamp {
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); margin: 0;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 4px;
+}
+.stamp > div { padding: 10px 14px 12px; border-left: 1px solid var(--rule); display: grid; align-content: start; gap: 2px; min-width: 0; }
+.stamp > div:first-child { border-left: 0; }
+.stamp dt { font-size: 11.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.stamp dd { margin: 0; }
+.stamp .v { font: 600 26px/1.15 var(--f-cond); letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+.stamp .s { display: block; font-size: 12.5px; color: var(--ink-2); line-height: 1.35; overflow-wrap: anywhere; }
+.stamp button.jump { all: unset; cursor: pointer; display: grid; gap: 2px; }
+.stamp button.jump:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+.stamp button.jump .s { text-decoration: underline; text-decoration-color: var(--grid-strong); text-underline-offset: 3px; }
+
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; }
+.flt { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
+.flt select { min-width: 150px; }
+.check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+.check input { accent-color: var(--ink); width: 15px; height: 15px; margin: 0; }
+
+/* ——— карточка диаграммы ——— */
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; }
+.chart-card { display: grid; }
+.chart-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 14px 16px 10px; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 7px; padding: 2px; background: var(--surface-2); flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; cursor: pointer; padding: 6px 12px; border-radius: 5px; font-size: 13px; font-weight: 500; color: var(--ink-2); }
+.seg button:hover { color: var(--ink); background: var(--grid); }
+.seg button[aria-pressed="true"], .seg button[aria-selected="true"] { background: var(--ink); color: var(--surface); }
+.legend-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; padding: 0 16px 12px; border-bottom: 1px solid var(--rule); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; margin: 0; padding: 0; }
+.legend li { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-2); }
+.legend svg, .check svg { flex: none; overflow: visible; }
+
+.gantt { display: grid; grid-template-columns: var(--lab-w) minmax(0, 1fr); position: relative; }
+.gantt-labels { border-right: 1px solid var(--rule); background: var(--surface); }
+.gantt-scroll { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: thin; }
+.gantt-scroll svg { display: block; }
+.gantt-empty { padding: 28px 16px; color: var(--muted); grid-column: 1 / -1; }
+.lab-cap { display: flex; align-items: end; padding: 0 12px 8px; font-size: 11.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.lane-lab { padding: 12px 12px 0; border-top: 1px solid var(--rule); display: grid; align-content: start; gap: 3px; overflow: hidden; }
+.lane-lab .n { font: 600 14px/1.2 var(--f-cond); }
+.lane-lab .t { font-size: 12px; color: var(--muted); line-height: 1.3; }
+.now { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); line-height: 1.3; margin-top: 4px; }
+.now i { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--c, transparent); box-shadow: inset 0 0 0 1.5px var(--c, var(--muted)); }
+.grp-lab { display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-top: 1px solid var(--rule); background: var(--surface-2); font: 600 13px/1.2 var(--f-cond); gap: 6px; white-space: nowrap; overflow: hidden; }
+.grp-lab b { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.grp-lab span { font: 400 12px var(--f-body); color: var(--muted); flex: none; }
+.row-lab { display: flex; align-items: center; gap: 6px; padding: 0 8px 0 12px; font: 500 13px/1 var(--f-cond); white-space: nowrap; overflow: hidden; }
+.row-lab small { font: 400 11.5px var(--f-body); color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+.row-lab .ic { margin-left: auto; }
+.row-lab.pad-start { border-top: 1px solid var(--grid); }
+.row-lab.hl { background: var(--grid); }
+
+.gantt-svg text { font-family: var(--f-cond); }
+.ax-y { font-size: 13px; font-weight: 600; fill: var(--ink); }
+.ax-q { font-size: 11.5px; font-weight: 500; fill: var(--muted); }
+.grid-y { stroke: var(--grid-strong); stroke-width: 1; }
+.grid-q { stroke: var(--grid); stroke-width: 1; }
+.axis { stroke: var(--grid-strong); stroke-width: 1; }
+.sep { stroke: var(--rule); stroke-width: 1; }
+.sep-pad { stroke: var(--grid); stroke-width: 1; }
+.band { fill: var(--surface-2); }
+.bracket { fill: none; stroke: var(--grid-strong); stroke-width: 1; }
+.pad-lbl { font-size: 12px; font-weight: 600; fill: var(--ink-2); }
+.lbl { font-size: 11.5px; font-weight: 600; fill: var(--ink); }
+.bl { font-size: 10.5px; font-weight: 600; pointer-events: none; }
+.bl-drill { fill: var(--on-drill); }
+.bl-mid { fill: var(--on-mid); }
+.bl.on-pale { fill: var(--ink); }
+.leader { stroke: var(--grid-strong); stroke-width: 1; }
+.note { font-size: 11.5px; font-weight: 500; fill: var(--muted); }
+.lane-note { font-size: 11.5px; font-weight: 500; fill: var(--muted); }
+.f-drill { fill: var(--drill); }
+.f-vmr { fill: var(--vmr); }
+.f-krs { fill: var(--krs); }
+.f-grp { fill: var(--grp); }
+.f-idle { fill: var(--idle); }
+.pale { fill-opacity: var(--pale); }
+.seg.bad { stroke: var(--crit); stroke-width: 2; paint-order: stroke; }
+.vnr-line { stroke: var(--ink-2); stroke-width: 2; stroke-linecap: round; }
+.vnr-line.pale { stroke-opacity: 0.55; }
+.vnr-line.bad { stroke: var(--crit); }
+.vvod { fill: var(--ink); stroke: var(--surface); stroke-width: 1.5; }
+.vvod.bad { fill: var(--crit); }
+.hit { fill: transparent; }
+.today { stroke: var(--ink); stroke-width: 1.5; }
+.today-lbl { font-size: 12px; font-weight: 600; fill: var(--ink); }
+.today-bg { fill: var(--surface); }
+.w:focus { outline: none; }
+.w:focus-visible .seg, .w.flash .seg { stroke: var(--ink); stroke-width: 2; }
+.gantt-svg.hovering .w:not(.on) { opacity: 0.3; }
+.gantt-svg .w { transition: opacity 0.12s; }
+
+.table-view { border-top: 1px solid var(--rule); }
+.table-view summary { cursor: pointer; padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--ink-2); }
+.table-view summary:hover { color: var(--ink); }
+.table-view[open] summary { border-bottom: 1px solid var(--rule); }
+
+/* ——— таблицы ——— */
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+th, td { padding: 7px 12px; text-align: left; border-bottom: 1px solid var(--grid); vertical-align: top; }
+th { font-weight: 500; font-size: 12px; color: var(--muted); white-space: nowrap; background: var(--surface-2); border-bottom-color: var(--rule); }
+td.num, th.num { text-align: right; white-space: nowrap; }
+td.nw { white-space: nowrap; }
+tbody tr:hover td { background: var(--surface-2); }
+tfoot td { font-weight: 600; border-top: 1px solid var(--rule); border-bottom: 0; }
+.sub { color: var(--muted); font-size: 12px; }
+.years-box { overflow: hidden; }
+.years td { vertical-align: middle; }
+.bar-cell { display: flex; align-items: center; gap: 10px; min-width: 190px; }
+.bar-cell b { font-weight: 500; min-width: 62px; text-align: right; }
+.hbar { flex: 1; height: 10px; background: var(--grid); border-radius: 0 3px 3px 0; overflow: hidden; min-width: 80px; }
+.hbar span { display: block; height: 100%; background: var(--drill); border-radius: 0 3px 3px 0; }
+.stack { display: flex; gap: 2px; height: 10px; min-width: 150px; }
+.stack span { display: block; height: 100%; }
+.stack span:last-child { border-radius: 0 3px 3px 0; }
+.stack .f-drill { background: var(--drill); }
+.stack .f-vmr { background: var(--vmr); }
+.stack .f-idle { background: var(--idle); }
+.section { display: grid; gap: 12px; }
+.section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.note-text { color: var(--muted); font-size: 12.5px; max-width: 80ch; }
+
+/* ——— замечания ——— */
+.issues-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.issues-bar .seg button span { color: inherit; opacity: 0.75; margin-left: 4px; font-variant-numeric: tabular-nums; }
+.igroups { border-bottom: 1px solid var(--rule); }
+.igroup { border-top: 1px solid var(--rule); padding: 12px 2px 12px; display: grid; gap: 7px; }
+.igroup-h { display: flex; align-items: center; gap: 10px; }
+.igroup-h b { font: 600 15px/1.25 var(--f-cond); }
+.igroup-h .n { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.igroup-h .lvl { margin-left: auto; }
+.ilist { list-style: none; margin: 0; padding: 0 0 0 30px; display: grid; gap: 5px; }
+.ilist li { color: var(--ink-2); font-size: 13.5px; line-height: 1.45; }
+.ilist .ref { color: var(--muted); font-size: 12px; margin-left: 8px; white-space: nowrap; }
+.more { border: 0; background: none; padding: 0 0 0 30px; color: var(--ink-2); font-size: 13px; text-decoration: underline; text-decoration-color: var(--grid-strong); text-underline-offset: 3px; cursor: pointer; justify-self: start; }
+.linkish { border: 0; background: none; padding: 0; font: 600 13.5px var(--f-body); color: var(--ink); text-decoration: underline; text-decoration-color: var(--grid-strong); text-underline-offset: 3px; cursor: pointer; }
+.linkish:hover { text-decoration-color: var(--ink); }
+.ic { width: 18px; height: 18px; flex: none; }
+.lvl { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.count { font: 500 14px var(--f-body); color: var(--muted); }
+.copy-box { display: grid; gap: 6px; }
+.copy-box textarea { width: 100%; min-height: 120px; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid var(--rule); border-radius: 6px; padding: 8px; background: var(--surface); color: var(--ink); }
+.ok-note { font-size: 12.5px; color: var(--ink-2); }
+.no-issues { padding: 16px 2px; color: var(--ink-2); border-top: 1px solid var(--rule); }
+
+footer { color: var(--muted); font-size: 12.5px; display: grid; gap: 4px; max-width: 92ch; }
+
+/* ——— подсказка ——— */
+.tip {
+  position: fixed; z-index: 30; left: 0; top: 0;
+  width: max-content; max-width: min(360px, calc(100vw - 24px));
+  background: var(--raised); color: var(--ink);
+  border: 1px solid var(--rule); border-radius: 8px; box-shadow: var(--shadow);
+  padding: 10px 12px 11px; font-size: 12.5px; line-height: 1.4; pointer-events: none;
+}
+.tip-h { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.tip-h b { font: 600 16px/1.1 var(--f-cond); }
+.tip-h span { color: var(--muted); }
+.tip-main { display: flex; align-items: baseline; gap: 8px; padding: 6px 0 8px; border-top: 1px solid var(--grid); }
+.tip-main strong { font: 600 18px/1 var(--f-cond); white-space: nowrap; }
+.tip-main em { font-style: normal; color: var(--ink-2); }
+.tip-key { width: 12px; height: 3px; border-radius: 2px; flex: none; align-self: center; }
+.tip dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 0; }
+.tip dt { color: var(--muted); }
+.tip dd { margin: 0; }
+.tip .steps { display: grid; grid-template-columns: 10px auto 1fr; gap: 2px 8px; margin: 2px 0 8px; align-items: center; }
+.tip .steps .d { color: var(--muted); white-space: nowrap; }
+.tip .steps .bad-step { color: var(--ink); font-weight: 600; }
+.tip-issue { display: flex; gap: 6px; margin-top: 7px; color: var(--ink-2); }
+.tip-issue .ic { width: 15px; height: 15px; }
+
+@media (max-width: 1040px) {
+  .stamp { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stamp > div:nth-child(3n + 1) { border-left: 0; }
+  .stamp > div:nth-child(n + 4) { border-top: 1px solid var(--rule); }
+}
+@media (max-width: 640px) {
+  .page { padding-inline: 16px; padding-block: 20px 40px; gap: 20px; }
+  :root { --lab-w: 108px; }
+  .stamp { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stamp > div { border-left: 1px solid var(--rule); border-top: 0; }
+  .stamp > div:nth-child(2n + 1) { border-left: 0; }
+  .stamp > div:nth-child(n + 3) { border-top: 1px solid var(--rule); }
+  .stamp .v { font-size: 22px; }
+  .lane-lab { padding: 10px 8px 0; }
+  .lane-lab .t { display: none; }
+  .grp-lab, .row-lab { padding-left: 8px; }
+  .row-lab small { display: none; }
+  .chart-bar, .legend-row { padding-inline: 12px; }
+  .flt select { min-width: 0; }
+  .ilist, .more { padding-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gantt-svg .w { transition: none; }
+  .spinner { animation-duration: 2.4s; }
+}
+</style>
+
+<div class="page">
+  <header class="head">
+    <div class="head-titles">
+      <p class="eyebrow">График строительства скважин</p>
+      <h1>Анализ графика бурения</h1>
+      <p class="lede">Откройте Excel-файл графика. Страница покажет все процессы по скважинам и бригадам и найдёт ошибки в датах, последовательности работ, статусах и годовых итогах.</p>
+    </div>
+    <div class="filebar" id="filebar">
+      <div class="file-info" id="file-info"></div>
+      <div class="file-actions">
+        <label class="flt" for="sheet-select" id="sheet-wrap" hidden>Лист <select class="sel" id="sheet-select"></select></label>
+        <button type="button" class="btn" id="open-btn">Открыть файл</button>
+        <input type="file" id="file-input" accept=".xlsb,.xlsx,.xlsm,.xls,application/vnd.ms-excel.sheet.binary.macroEnabled.12,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+      </div>
+    </div>
+    <p class="privacy">Файл обрабатывается только в вашем браузере и никуда не отправляется. Его можно просто перетащить на страницу.</p>
+  </header>
+
+  <section class="empty" id="empty" hidden>
+    <svg viewBox="0 0 30 36" aria-hidden="true"><path class="pg" d="M3 1.5h16l8 8v25H3z" fill="var(--surface-2)" stroke="var(--grid-strong)"/><path d="M19 1.5v8h8" fill="none" stroke="var(--grid-strong)"/><path d="M8 17h9" stroke="var(--vmr)" stroke-width="2" stroke-linecap="round"/><path d="M11 22h11" stroke="var(--drill)" stroke-width="2" stroke-linecap="round"/><path d="M16 27h7" stroke="var(--krs)" stroke-width="2" stroke-linecap="round"/></svg>
+    <h2>Перетащите сюда файл графика</h2>
+    <p>Подойдёт книга .xlsb, .xlsx или .xlsm с листом «график»: строка заголовков со столбцами «Куст», «Скважина», «Бурение» и даты начала и окончания этапов.</p>
+    <button type="button" class="btn" id="empty-open">Выбрать файл</button>
+    <ul>
+      <li>Все процессы по скважинам: ВМР, бурение, КРС и освоение, ГРП и ГНКТ, ГКИ, ВНР и ввод</li>
+      <li>Бурение по бригадам с кустами, передвижками и простоями</li>
+      <li>Загрузка бригад КРС и освоения, флотов ГРП, ГНКТ и ГКИ</li>
+      <li>Проверка дат, последовательности работ, статусов и годовых итогов</li>
+    </ul>
+  </section>
+
+  <div class="content" id="content" hidden>
+    <dl class="stamp" id="stamp"></dl>
+
+    <div class="filters" role="group" aria-label="Фильтры">
+      <label class="flt" for="rig-filter">Бригада <select class="sel" id="rig-filter"></select></label>
+      <label class="flt" for="pad-filter">Куст <select class="sel" id="pad-filter"></select></label>
+      <label class="check" for="only-issues"><input type="checkbox" id="only-issues"> Только скважины с замечаниями к датам</label>
+    </div>
+
+    <section class="card chart-card" id="chart-card" aria-label="Диаграмма Ганта">
+      <div class="chart-bar">
+        <div class="seg" role="tablist" aria-label="Вид диаграммы">
+          <button type="button" role="tab" data-view="wells">Все процессы</button>
+          <button type="button" role="tab" data-view="rigs">Бурение по бригадам</button>
+          <button type="button" role="tab" data-view="load">Загрузка КРС и ГРП</button>
+        </div>
+        <div class="seg" role="group" aria-label="Масштаб">
+          <button type="button" data-zoom="all">Весь период</button>
+          <button type="button" data-zoom="2y">2 года</button>
+          <button type="button" data-zoom="1y">Год</button>
+        </div>
+      </div>
+      <div class="legend-row">
+        <ul class="legend" id="legend"></ul>
+        <label class="check" for="fin-toggle"><input type="checkbox" id="fin-toggle">
+          <svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true"><rect x="0" y="1" width="7" height="10" rx="2" class="f-drill pale"></rect><rect x="9" y="1" width="7" height="10" rx="2" class="f-krs pale"></rect></svg>
+          Светлым — нет финансирования ИК</label>
+      </div>
+      <div class="gantt" id="gantt">
+        <div class="gantt-labels" id="gantt-labels"></div>
+        <div class="gantt-scroll" id="gantt-scroll"></div>
+      </div>
+      <details class="table-view" id="table-view">
+        <summary>Таблица скважин</summary>
+        <div class="table-wrap" id="well-table"></div>
+      </details>
+    </section>
+
+    <section class="section" aria-labelledby="years-h">
+      <div class="section-head">
+        <h2 id="years-h">По годам</h2>
+        <p class="note-text">Проходка разнесена по годам пропорционально времени бурения. Сутки календарные, по датам этапов, суммарно по бригадам.</p>
+      </div>
+      <div class="card years-box"><div class="table-wrap years" id="year-table"></div></div>
+    </section>
+
+    <section class="section" id="issues-section" aria-labelledby="issues-h">
+      <div class="section-head">
+        <h2 id="issues-h">Замечания <span class="count" id="issues-count"></span></h2>
+        <p class="note-text">Нажмите на скважину, чтобы показать её на диаграмме. Строка и ячейки указаны по листу Excel.</p>
+      </div>
+      <div class="issues-bar">
+        <div class="seg" role="group" aria-label="Уровень" id="level-seg"></div>
+        <button type="button" class="btn ghost" id="copy-issues">Скопировать для Excel</button>
+      </div>
+      <div id="copy-area"></div>
+      <div class="igroups" id="igroups"></div>
+    </section>
+
+    <footer id="footer"></footer>
+  </div>
+</div>
+<div class="drop-overlay" id="drop-overlay" hidden><div>Отпустите файл,<br>чтобы открыть график</div></div>
+<div class="tip" id="tip" role="tooltip" hidden></div>
+<noscript><p style="padding:16px">Для работы страницы нужен JavaScript.</p></noscript>
+
+<script>
+const EMBED = /*__MODEL__*/null;
+(function () {
+  "use strict";
+  const XLSX_SRC = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+
+  /* ——— утилиты ——— */
+  const DAY_MS = 864e5;
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const $ = (id) => document.getElementById(id);
+  function svg(tag, attrs, parent) {
+    const n = document.createElementNS(SVGNS, tag);
+    for (const k in attrs || {}) if (attrs[k] != null) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function el(tag, cls, text, parent) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  const pad2 = (n) => String(n).padStart(2, "0");
+  const asDate = (d) => new Date(Math.round(d * DAY_MS));
+  const utcDay = (y, m, d) => Date.UTC(y, m, d || 1) / DAY_MS;
+  const yearOf = (d) => asDate(d).getUTCFullYear();
+  function fmt(d, time) {
+    if (d == null) return "—";
+    const t = asDate(d);
+    let s = pad2(t.getUTCDate()) + "." + pad2(t.getUTCMonth() + 1) + "." + t.getUTCFullYear();
+    if (time && (t.getUTCHours() || t.getUTCMinutes())) s += " " + pad2(t.getUTCHours()) + ":" + pad2(t.getUTCMinutes());
+    return s;
+  }
+  function fmtRange(s, e, time) {
+    if (s == null && e == null) return "—";
+    if (e == null) return "с " + fmt(s, time);
+    if (s == null) return "по " + fmt(e, time);
+    return fmt(s, time) + " – " + fmt(e, time);
+  }
+  const MONTHS = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
+  const QUARTERS = ["I кв.", "II кв.", "III кв.", "IV кв."];
+  const NF = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
+  const NF1 = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 1 });
+  function plural(n, forms) {
+    const a = Math.abs(Math.round(n)) % 100, b = a % 10;
+    return forms[a > 10 && a < 20 ? 2 : b === 1 ? 0 : b >= 2 && b <= 4 ? 1 : 2];
+  }
+  const lc = (t) => (/^[А-ЯЁA-Z]{2,}/.test(t) ? t : t.charAt(0).toLowerCase() + t.slice(1));
+  const days = (n) => (n < 10 && Math.abs(n - Math.round(n)) > 0.05 ? NF1.format(n) : NF.format(Math.round(n))) + " сут";
+  const fmtSize = (b) => (b >= 1048576 ? NF1.format(b / 1048576) + " МБ" : NF.format(Math.max(1, b / 1024)) + " КБ");
+  const norm = (v) => String(v == null ? "" : v).replace(/\s+/g, " ").trim();
+  const LAT = "ABCEHKMOPTX", CYR = "АВСЕНКМОРТХ";
+  const fold = (v) => String(v == null ? "" : v).toUpperCase().replace(/\s+/g, "").replace(/[ABCEHKMOPTX]/g, (c) => CYR[LAT.indexOf(c)]);
+  function colName(c) {
+    let s = "";
+    for (c += 1; c > 0; c = Math.floor((c - 1) / 26)) s = String.fromCharCode(65 + ((c - 1) % 26)) + s;
+    return s;
+  }
+  const ref = (c, row) => (c == null ? null : colName(c) + row);
+  function median(arr) {
+    const a = arr.filter(Number.isFinite).sort((x, y) => x - y);
+    if (!a.length) return null;
+    const m = a.length >> 1;
+    return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+  }
+  const today = new Date();
+  const NOW = utcDay(today.getFullYear(), today.getMonth(), today.getDate()) + (today.getHours() * 60 + today.getMinutes()) / 1440;
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  class UserError extends Error {}
+
+  /* ——— процессы ——— */
+  const FAM = {
+    drill: { label: "Бурение", cls: "f-drill", bl: "bl-drill", color: "var(--drill)" },
+    vmr: { label: "ВМР буровой: монтаж, передвижка, демонтаж", cls: "f-vmr", bl: "bl-mid", color: "var(--vmr)" },
+    idle: { label: "Консервация, простой, неготовность КП", cls: "f-idle", bl: "bl-mid", color: "var(--idle)" },
+    krs: { label: "КРС, освоение и ГКИ", cls: "f-krs", bl: "bl-mid", color: "var(--krs)" },
+    grp: { label: "ГРП и ГНКТ", cls: "f-grp", bl: "bl-mid", color: "var(--grp)" },
+    vnr: { label: "Обустройство и ВНР", cls: "", bl: "bl-mid", color: "var(--ink-2)" },
+  };
+  // head — начало заголовка группы столбцов в листе; порядок как в листе
+  const STAGE = {
+    kons: { name: "Консервация / простой", short: "простой", fam: "idle", rig: true, head: "Консервация/простой" },
+    montazh: { name: "Монтаж БУ", short: "монтаж", fam: "vmr", rig: true, head: "Монтаж" },
+    demontazh: { name: "Демонтаж БУ", short: "демонтаж", fam: "vmr", rig: true, head: "Демонтаж" },
+    peredv: { name: "Передвижка", short: "передв.", fam: "vmr", rig: true, head: "Передвижка" },
+    bur: { name: "Бурение", short: "бурение", fam: "drill", rig: true, head: "Бурение" },
+    osvob: { name: "Освобождение устья", short: "осв. устья", fam: "krs", head: "Освобождение устья" },
+    negot: { name: "Неготовность КП", short: "неготовн.", fam: "idle", head: "Период неготовности" },
+    montKrs: { name: "Монтаж КРС", short: "м. КРС", fam: "krs", svc: "krs", head: "Монтаж КРС" },
+    krs: { name: "КРС", short: "КРС", fam: "krs", svc: "krs", head: "КРС." },
+    montGrp: { name: "Монтаж флота ГРП", short: "м. ГРП", fam: "grp", svc: "grp", head: "Монтаж флота ГРП" },
+    grp: { name: "ГРП", short: "ГРП", fam: "grp", svc: "grp", head: "ГРП" },
+    demGrp: { name: "Демонтаж флота ГРП", short: "д. ГРП", fam: "grp", svc: "grp", head: "Демонтаж флота ГРП" },
+    gnkt: { name: "ГНКТ", short: "ГНКТ", fam: "grp", svc: "gnkt", head: "ГНКТ" },
+    osv: { name: "Освоение", short: "освоение", fam: "krs", svc: "krs", head: "Освоение" },
+    demKrs: { name: "Демонтаж КРС", short: "д. КРС", fam: "krs", svc: "krs", head: "Демонтаж КРС" },
+    montGki: { name: "Монтаж ГКИ", short: "м. ГКИ", fam: "krs", svc: "gki", head: "Монтаж ГКИ" },
+    gki: { name: "ГКИ", short: "ГКИ", fam: "krs", svc: "gki", head: "ГКИ" },
+    demGki: { name: "Демонтаж ГКИ", short: "д. ГКИ", fam: "krs", svc: "gki", head: "Демонтаж ГКИ" },
+    obustr: { name: "Обустройство", short: "обустр.", fam: "vnr", head: "Обустройство" },
+    vnr: { name: "ВНР", short: "ВНР", fam: "vnr", head: "ВНР" },
+  };
+  const SERVICES = [
+    { id: "krs", name: "Бригады КРС и освоения", fam: "krs" },
+    { id: "grp", name: "Флоты ГРП", fam: "grp" },
+    { id: "gnkt", name: "ГНКТ", fam: "grp" },
+    { id: "gki", name: "ГКИ", fam: "krs" },
+  ];
+  // этапы заканчивания, которые не могут начаться раньше окончания бурения
+  const COMPL = ["montKrs", "krs", "montGrp", "grp", "demGrp", "gnkt", "osv", "demKrs", "montGki", "gki", "demGki"];
+  const MILESTONES = { okStr: "Окончание строительства", vvod: "Ввод в эксплуатацию" };
+  const ATTRS = {
+    n: "№ п/п", fin: "Наличие финансирования", note: "Примечания", queue: "Очередь", first: "Первая скважина КП",
+    rig: "Сцепка Бур Подрядчик Бригада", goal: "Цель бурения", contractor: "Подрядная организация", rigNo: "№ Бригады",
+    rigType: "Тип станка", status: "Статус", field: "Месторождение", pad: "Куст", well: "Скважина", profile: "Профиль",
+    wellType: "Тип скважины", purpose: "Назначение", target: "Цель", layer: "Пласт", frac: "МГРП/ ГРП",
+    fracStages: "Кол-во стадий", footage: "Проходка", tempLaunch: "Запуск по временной схеме", mob: "Мобилизация /демобилизация",
+  };
+  const NUM_ATTRS = new Set(["n", "queue", "first", "rigNo", "fracStages", "footage"]);
+
+  const LEVELS = {
+    error: { label: "ошибка", many: ["ошибка", "ошибки", "ошибок"], tab: "Ошибки" },
+    warn: { label: "проверить", many: ["проверить", "проверить", "проверить"], tab: "Проверить" },
+    info: { label: "к сведению", many: ["к сведению", "к сведению", "к сведению"], tab: "К сведению" },
+  };
+  const LEVEL_ORDER = { error: 0, warn: 1, info: 2 };
+  const CHECKS = {
+    end_before_start: { level: "error", title: "Окончание этапа раньше начала" },
+    days_mismatch: { level: "error", title: "Длительность по датам не совпадает со столбцом «сут»" },
+    vvod_before_drill: { level: "error", title: "Ввод в эксплуатацию раньше окончания бурения" },
+    compl_before_drill: { level: "error", title: "Заканчивание начинается до окончания бурения" },
+    vvod_before_compl: { level: "error", title: "Ввод раньше окончания освоения или ГРП" },
+    drill_before_rigup: { level: "error", title: "Бурение начинается до окончания монтажа или передвижки" },
+    rig_overlap: { level: "error", title: "Работы одной бригады пересекаются" },
+    dup_well: { level: "error", title: "Скважина повторяется в графике" },
+    cell_error: { level: "error", title: "Ошибки в ячейках" },
+    bad_date: { level: "error", title: "В столбце даты не дата" },
+    grp_order: { level: "warn", title: "Нарушен порядок «монтаж флота → ГРП → демонтаж»" },
+    osv_before_grp: { level: "warn", title: "Освоение начинается до окончания ГРП" },
+    vvod_vs_vnr: { level: "warn", title: "Ввод не совпадает с окончанием ВНР" },
+    okstr_vs_vvod: { level: "warn", title: "Окончание строительства не совпадает с вводом" },
+    half_date: { level: "warn", title: "Заполнена только одна дата этапа" },
+    text_date: { level: "warn", title: "Дата записана текстом" },
+    status: { level: "warn", title: "Статус не соответствует датам" },
+    no_move: { level: "warn", title: "Нет передвижки между скважинами куста" },
+    pad_no_rigup: { level: "warn", title: "Смена куста без монтажа" },
+    first_flag: { level: "warn", title: "Признак «Первая скважина КП» не совпадает с монтажом" },
+    rig_gap: { level: "warn", title: "Окно без работ у бригады" },
+    frac_mismatch: { level: "warn", title: "Столбец «МГРП/ГРП» не согласован с датами ГРП" },
+    no_footage: { level: "warn", title: "Не указана проходка" },
+    no_drill: { level: "warn", title: "Скважина без дат бурения" },
+    year_footage: { level: "warn", title: "Годовые итоги проходки не сходятся с проходкой" },
+    year_days: { level: "warn", title: "Годовые итоги суток бурения не сходятся с датами" },
+    viz_stale: { level: "warn", title: "Лист «Данные» не совпадает с графиком" },
+    ik_dates: { level: "warn", title: "Одно решение ИК с разными датами" },
+    alphabet: { level: "warn", title: "Латиница и кириллица в номерах кустов и скважин" },
+    long_wait: { level: "info", title: "Скважина долго ждёт ГРП или освоения" },
+    speed_outlier: { level: "info", title: "Нетипичная длительность бурения" },
+    dup_num: { level: "info", title: "Повторяются номера п/п" },
+  };
+  const CHECK_ORDER = Object.keys(CHECKS);
+  // замечания к оформлению листа, а не к датам: не отмечаем ими строки диаграммы
+  const SHEET_CODES = new Set(["alphabet", "year_footage", "year_days", "dup_num", "ik_dates", "viz_stale"]);
+
+  /* ——— чтение книги ——— */
+  const ERRS = { 0: "#ПУСТО!", 7: "#ДЕЛ/0!", 15: "#ЗНАЧ!", 23: "#ССЫЛКА!", 29: "#ИМЯ?", 36: "#ЧИСЛО!", 42: "#Н/Д", 43: "#ОЖИДАНИЕ" };
+  function cellVal(c) {
+    if (!c || c.t === "z") return null;
+    if (c.t === "e") return { err: ERRS[c.v] || c.w || "#ОШИБКА" };
+    if (c.v instanceof Date) return { date: c.v };
+    return c.v;
+  }
+  function sheetRows(X, ws, maxRows) {
+    const rows = [];
+    for (const key in ws) {
+      if (key.charCodeAt(0) === 33) continue;
+      const a = X.utils.decode_cell(key);
+      if (maxRows != null && a.r >= maxRows) continue;
+      (rows[a.r] || (rows[a.r] = []))[a.c] = cellVal(ws[key]);
+    }
+    for (let i = 0; i < rows.length; i++) if (!rows[i]) rows[i] = [];
+    return rows;
+  }
+  function findHeader(rows) {
+    const lim = Math.min(rows.length, 80);
+    for (let i = 0; i < lim; i++) {
+      const cells = new Set();
+      for (const v of rows[i] || []) cells.add(norm(v));
+      if (cells.has("Скважина") && cells.has("Куст") && cells.has("Бурение")) return i;
+    }
+    return null;
+  }
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  function mapColumns(header, sub) {
+    const width = Math.max(header.length, sub.length);
+    const H = [], S = [];
+    for (let j = 0; j < width; j++) { H.push(norm(header[j])); S.push(norm(sub[j])); }
+    const attrs = {};
+    for (const key in ATTRS) {
+      const j = H.indexOf(ATTRS[key]);
+      if (j !== -1) attrs[key] = j;
+    }
+    const groups = [];
+    for (let j = 0; j < width; j++) if (H[j]) groups.push(j);
+    const span = (j) => {
+      const i = groups.indexOf(j);
+      const next = i + 1 < groups.length ? groups[i + 1] : width;
+      const out = [];
+      for (let k = j; k < next; k++) out.push(k);
+      return out;
+    };
+    // Сначала точное совпадение («Монтаж»), затем по началу («Монтаж КРС / …»);
+    // берём только группу с нужным подзаголовком: «ГНКТ» встречается и среди признаков.
+    function find(prefix, needed) {
+      const re = new RegExp("^" + esc(prefix) + "(?![А-Яа-яЁёA-Za-z])");
+      const exact = groups.filter((j) => H[j] === prefix);
+      const loose = groups.filter((j) => H[j] !== prefix && re.test(H[j]));
+      return exact.concat(loose).find((j) => span(j).some((k) => S[k] === needed));
+    }
+    const stages = {};
+    for (const k in STAGE) {
+      const j = find(STAGE[k].head, "Дата начала");
+      if (j == null) continue;
+      const sp = span(j);
+      const s = sp.find((c) => S[c] === "Дата начала"), e = sp.find((c) => S[c] === "Дата окончания"), d = sp.find((c) => S[c] === "сут");
+      if (s != null && e != null) stages[k] = { s: s, e: e, d: d == null ? null : d };
+    }
+    const miles = {};
+    for (const k in MILESTONES) {
+      const j = find(MILESTONES[k], "Дата");
+      if (j != null) {
+        const c = span(j).find((x) => S[x] === "Дата");
+        if (c != null) miles[k] = c;
+      }
+    }
+    function yearBlock(start, re) {
+      const j0 = H.findIndex((t) => t.startsWith(start));
+      if (j0 === -1) return [];
+      let j1 = width;
+      for (let j = j0 + 1; j < width; j++) {
+        if (H[j] && !/^\d{4}(\.0)?$/.test(H[j]) && !/квартал/i.test(H[j])) { j1 = j; break; }
+      }
+      const out = [];
+      for (let j = j0; j < j1; j++) {
+        const m = re.exec(S[j]);
+        if (m) out.push({ c: j, y: +m[1] });
+      }
+      return out;
+    }
+    return {
+      attrs: attrs, stages: stages, miles: miles,
+      footYears: yearBlock("Всего проходка по скважине", /^Проходка Всего за (\d{4})\s*г/),
+      dayYears: yearBlock("Всего сутки бурения по скважине", /^Всего за (\d{4})\s*г/),
+    };
+  }
+  function num(v) {
+    if (typeof v === "number") return Number.isFinite(v) ? v : null;
+    if (typeof v === "string") {
+      const t = v.replace(/\s| /g, "").replace(",", ".");
+      if (/^-?\d+(\.\d+)?$/.test(t)) return +t;
+    }
+    return null;
+  }
+  function cellText(v) {
+    if (v == null || typeof v === "boolean" || (typeof v === "object" && v.err)) return "";
+    if (typeof v === "number") return Number.isInteger(v) ? String(v) : String(Math.round(v * 1000) / 1000);
+    if (typeof v === "object" && v.date) return fmt(Date.UTC(v.date.getFullYear(), v.date.getMonth(), v.date.getDate()) / DAY_MS);
+    return norm(v);
+  }
+  function toDay(v, d1904) {
+    if (v == null || v === "") return {};
+    if (typeof v === "number") {
+      if (v > 20000 && v < 80000) return { day: Math.round((v - 25569 + (d1904 ? 1462 : 0)) * 1e4) / 1e4 };
+      return { bad: NF1.format(v) };
+    }
+    if (typeof v === "object") {
+      if (v.err) return { err: v.err };
+      if (v.date) return { day: Date.UTC(v.date.getFullYear(), v.date.getMonth(), v.date.getDate(), v.date.getHours(), v.date.getMinutes()) / DAY_MS };
+      return {};
+    }
+    if (typeof v === "string") {
+      const t = v.trim();
+      if (!t || /^[-—–]$/.test(t)) return {};
+      const m = /^(\d{1,2})[./-](\d{1,2})[./-](\d{4}|\d{2})(?:\s+(\d{1,2}):(\d{2}))?$/.exec(t);
+      if (m) {
+        let y = +m[3];
+        if (y < 100) y += 2000;
+        return { day: utcDay(y, +m[2] - 1, +m[1]) + (m[4] ? (+m[4] * 60 + +m[5]) / 1440 : 0), text: t };
+      }
+      return { bad: t.length > 40 ? t.slice(0, 40) + "…" : t };
+    }
+    return {};
+  }
+
+  function readBook(X, data) {
+    const opts = { type: "array", cellStyles: false, cellHTML: false, cellText: false, cellNF: false, cellDates: false };
+    const names = X.read(data, { type: "array", bookSheets: true }).SheetNames;
+    const byName = names.filter((n) => /^\s*график/i.test(n) && !/визуал/i.test(n));
+    const extra = names.filter((n) => /^\s*(данные|управление)\s*$/i.test(n));
+    let wb = null, cands = [];
+    if (byName.length) {
+      wb = X.read(data, Object.assign({ sheets: byName.concat(extra) }, opts));
+      cands = byName.filter((n) => wb.Sheets[n] && findHeader(sheetRows(X, wb.Sheets[n], 80)) != null);
+    }
+    if (!cands.length) {
+      wb = X.read(data, opts);
+      cands = names.filter((n) => wb.Sheets[n] && findHeader(sheetRows(X, wb.Sheets[n], 80)) != null);
+    }
+    if (!cands.length) throw new UserError("В книге не найден лист графика. Нужна строка заголовков со столбцами «Куст», «Скважина» и «Бурение», как на листе «график».");
+    return { wb: wb, sheets: cands };
+  }
+
+  function readWells(rows, hr, cm, d1904) {
+    const wells = [], orphans = [];
+    for (let r = hr + 2; r < rows.length; r++) {
+      const row = rows[r] || [];
+      const get = (c) => (c == null ? null : row[c]);
+      const rowNo = r + 1;
+      const wRaw = get(cm.attrs.well);
+      const well = cellText(wRaw);
+      if (!well) continue;
+      const st = {}, notes = [];
+      for (const k in cm.stages) {
+        const c = cm.stages[k];
+        const a = toDay(get(c.s), d1904), b = toDay(get(c.e), d1904);
+        for (const [res, col] of [[a, c.s], [b, c.e]]) {
+          if (res.err) notes.push({ code: "cell_error", k: k, col: col, text: STAGE[k].name + ": в ячейке " + res.err });
+          else if (res.bad) notes.push({ code: "bad_date", k: k, col: col, text: STAGE[k].name + ": «" + res.bad + "» вместо даты" });
+          else if (res.text) notes.push({ code: "text_date", k: k, col: col, text: STAGE[k].name + ": «" + res.text + "» записано текстом, а не датой" });
+        }
+        if (a.day == null && b.day == null) continue;
+        const item = { s: a.day == null ? null : a.day, e: b.day == null ? null : b.day };
+        const dv = num(get(c.d));
+        if (dv != null) item.d = Math.round(dv * 1000) / 1000;
+        st[k] = item;
+      }
+      const rec = { row: rowNo, well: well };
+      for (const key in cm.attrs) {
+        if (key === "well") continue;
+        const v = get(cm.attrs[key]);
+        if (v && typeof v === "object" && v.err) {
+          notes.push({ code: "cell_error", col: cm.attrs[key], text: "«" + ATTRS[key] + "»: в ячейке " + v.err });
+          continue;
+        }
+        if (NUM_ATTRS.has(key)) {
+          const n = num(v);
+          if (n != null) rec[key] = Number.isInteger(n) ? n : Math.round(n * 10) / 10;
+        } else {
+          const t = cellText(v);
+          if (t && t !== "-") rec[key] = t;
+        }
+      }
+      for (const key in cm.miles) {
+        const res = toDay(get(cm.miles[key]), d1904);
+        if (res.day != null) rec[key] = res.day;
+      }
+      rec.pad = rec.pad || "—";
+      rec.rig = rec.rig || "—";
+      rec.label = /^\d+$/.test(well) && rec.pad !== "—" ? rec.pad + "-" + well : well;
+      rec.finOk = !!rec.fin && !/не\s*утвержд/i.test(rec.fin);
+      rec.st = st;
+      rec.notes = notes;
+      if (!st.bur || st.bur.s == null || st.bur.e == null) {
+        if (rec.rig !== "—" || Object.keys(st).length) orphans.push(rec);
+        continue;
+      }
+      wells.push(rec);
+    }
+    return { wells: wells, orphans: orphans };
+  }
+
+  function buildModel(X, wb, sheetName, fileMeta) {
+    const rows = sheetRows(X, wb.Sheets[sheetName]);
+    const hr = findHeader(rows);
+    if (hr == null) throw new UserError("На листе «" + sheetName + "» нет строки заголовков со столбцами «Куст», «Скважина» и «Бурение».");
+    const cm = mapColumns(rows[hr] || [], rows[hr + 1] || []);
+    const missing = [];
+    for (const k of ["rig", "pad", "well"]) if (cm.attrs[k] == null) missing.push("«" + ATTRS[k] + "»");
+    if (!cm.stages.bur) missing.push("«Бурение» с подзаголовками «Дата начала» и «Дата окончания»");
+    if (missing.length) throw new UserError("На листе «" + sheetName + "» не найдены столбцы " + missing.join(", ") + ".");
+    const d1904 = !!(wb.Workbook && wb.Workbook.WBProps && wb.Workbook.WBProps.date1904);
+    const got = readWells(rows, hr, cm, d1904);
+    if (!got.wells.length) throw new UserError("На листе «" + sheetName + "» нет ни одной скважины с датами начала и окончания бурения.");
+    const mod = wb.Props && wb.Props.ModifiedDate instanceof Date && !isNaN(wb.Props.ModifiedDate) ? wb.Props.ModifiedDate : new Date(fileMeta.lastModified || Date.now());
+    const model = {
+      v: 1,
+      file: { name: fileMeta.name || null, size: fileMeta.size || null, sheet: sheetName },
+      asOf: utcDay(mod.getUTCFullYear(), mod.getUTCMonth(), mod.getUTCDate()),
+      wells: got.wells,
+      orphans: got.orphans,
+      fields: [...new Set(got.wells.map((w) => w.field).filter(Boolean))].sort(),
+    };
+    model.issues = runChecks(model, { X: X, wb: wb, rows: rows, cm: cm, d1904: d1904 });
+    for (const w of model.wells) delete w.notes;
+    for (const w of model.orphans) delete w.notes;
+    return model;
+  }
+
+  /* ——— проверки ——— */
+  function alphabet(s) {
+    const lat = /[A-Za-z]/.test(s), cyr = /[А-Яа-яЁё]/.test(s);
+    return lat && cyr ? "mix" : lat ? "lat" : cyr ? "cyr" : null;
+  }
+  const ALPHA = { lat: "латиницей", cyr: "кириллицей", mix: "смесью латиницы и кириллицы" };
+
+  function runChecks(m, ctx) {
+    const out = [];
+    const cm = ctx.cm;
+    const add = (code, w, text, extra) => out.push(Object.assign({ code: code, level: CHECKS[code].level, well: w ? w.label : null, row: w ? w.row : null, text: text }, extra || {}));
+    const cells = (list) => list.filter(Boolean);
+    const sc = (w, k, part) => (cm.stages[k] ? ref(cm.stages[k][part], w.row) : null);
+    const planned = (w) => /^(|план|вне плана)$/i.test((w.status || "").trim());
+    const asOf = m.asOf;
+
+    for (const w of m.wells) {
+      for (const n of w.notes) add(n.code, w, n.text, { cells: cells([ref(n.col, w.row)]), stages: n.k ? [n.k] : [] });
+      const st = w.st, bur = st.bur;
+      for (const k in st) {
+        const it = st[k];
+        if (it.s != null && it.e != null) {
+          if (it.e < it.s - 0.01) {
+            add("end_before_start", w, STAGE[k].name + ": начало " + fmt(it.s, true) + ", окончание " + fmt(it.e, true), { cells: cells([sc(w, k, "s"), sc(w, k, "e")]), stages: [k] });
+          } else if (it.d != null && it.d > 0) {
+            const spanD = it.e - it.s;
+            if (Math.abs(spanD - it.d) > Math.max(1, it.d * 0.1)) {
+              add("days_mismatch", w, STAGE[k].name + ": по датам " + fmtRange(it.s, it.e) + " выходит " + NF.format(spanD) + " сут, а в столбце «сут» — " + NF1.format(it.d), { cells: cells([sc(w, k, "s"), sc(w, k, "e"), sc(w, k, "d")]), stages: [k] });
+            }
+          }
+        } else {
+          add("half_date", w, STAGE[k].name + ": " + (it.s != null ? "начало " + fmt(it.s) + ", окончание не указано" : "окончание " + fmt(it.e) + ", начало не указано"), { cells: cells([sc(w, k, "s"), sc(w, k, "e")]), stages: [k] });
+        }
+      }
+
+      const early = COMPL.filter((k) => st[k] && st[k].s != null && st[k].s < bur.e - 0.5);
+      if (early.length) {
+        add("compl_before_drill", w, early.map((k) => lc(STAGE[k].name) + " с " + fmt(st[k].s)).join(", ") + ", а бурение идёт до " + fmt(bur.e), { cells: cells([sc(w, "bur", "e")].concat(early.map((k) => sc(w, k, "s")))), stages: ["bur"].concat(early) });
+      }
+      for (const k of ["montazh", "peredv"]) {
+        const it = st[k];
+        if (it && it.e != null && it.e > bur.s + 0.5 && (it.s == null || it.s < bur.e)) {
+          add("drill_before_rigup", w, lc(STAGE[k].name) + " до " + fmt(it.e, true) + ", а бурение начинается " + fmt(bur.s, true), { cells: cells([sc(w, k, "e"), sc(w, "bur", "s")]), stages: [k, "bur"] });
+        }
+      }
+      if (w.vvod != null) {
+        const vc = cm.miles.vvod != null ? ref(cm.miles.vvod, w.row) : null;
+        if (w.vvod < bur.e - 0.01) {
+          add("vvod_before_drill", w, "ввод " + fmt(w.vvod) + (w.vvod < bur.s ? " — до начала бурения " : " — до окончания бурения ") + "(" + fmtRange(bur.s, bur.e) + ")", { cells: cells([vc, sc(w, "bur", "s"), sc(w, "bur", "e")]), stages: ["bur", "vvod"] });
+        } else {
+          let ce = -Infinity, ck = null;
+          for (const k of COMPL) if (STAGE[k].svc !== "gki" && st[k] && st[k].e != null && st[k].e > ce) { ce = st[k].e; ck = k; }
+          if (ck && w.vvod < ce - 7) add("vvod_before_compl", w, "ввод " + fmt(w.vvod) + ", а " + lc(STAGE[ck].name) + " заканчивается " + fmt(ce) + " — на " + NF.format(ce - w.vvod) + " сут позже", { cells: cells([vc, sc(w, ck, "e")]), stages: [ck, "vvod"] });
+        }
+        if (st.vnr && st.vnr.e != null && Math.abs(w.vvod - st.vnr.e) > 1) add("vvod_vs_vnr", w, "ввод " + fmt(w.vvod) + ", окончание ВНР " + fmt(st.vnr.e), { cells: cells([vc, sc(w, "vnr", "e")]), stages: ["vnr"] });
+        if (w.okStr != null && Math.abs(w.okStr - w.vvod) > 1) add("okstr_vs_vvod", w, "окончание строительства " + fmt(w.okStr) + ", ввод " + fmt(w.vvod), { cells: cells([cm.miles.okStr != null ? ref(cm.miles.okStr, w.row) : null, vc]) });
+      }
+      if (st.osv && st.grp && st.osv.s != null && st.grp.e != null && st.grp.s != null && st.osv.s < st.grp.e - 0.5 && st.osv.s > st.grp.s) {
+        add("osv_before_grp", w, "освоение с " + fmt(st.osv.s) + ", а ГРП идёт до " + fmt(st.grp.e), { cells: cells([sc(w, "osv", "s"), sc(w, "grp", "e")]), stages: ["osv", "grp"] });
+      }
+      if (st.montGrp && st.grp && st.montGrp.e != null && st.grp.s != null && st.montGrp.e > st.grp.s + 0.5) {
+        add("grp_order", w, "монтаж флота до " + fmt(st.montGrp.e) + ", а ГРП начинается " + fmt(st.grp.s), { cells: cells([sc(w, "montGrp", "e"), sc(w, "grp", "s")]), stages: ["montGrp", "grp"] });
+      }
+      if (st.demGrp && st.grp && st.demGrp.s != null && st.grp.e != null && st.demGrp.s < st.grp.e - 0.5) {
+        add("grp_order", w, "демонтаж флота с " + fmt(st.demGrp.s) + ", а ГРП идёт до " + fmt(st.grp.e), { cells: cells([sc(w, "demGrp", "s"), sc(w, "grp", "e")]), stages: ["demGrp", "grp"] });
+      }
+      let fw = Infinity, fk = null;
+      for (const k of ["montGrp", "grp", "gnkt", "krs", "osv"]) if (st[k] && st[k].s != null && st[k].s < fw) { fw = st[k].s; fk = k; }
+      if (fk && fw - bur.e > 180) add("long_wait", w, "бурение закончено " + fmt(bur.e) + ", " + lc(STAGE[fk].name) + " — с " + fmt(fw) + ": ожидание " + NF.format(fw - bur.e) + " сут", { cells: cells([sc(w, "bur", "e"), sc(w, fk, "s")]) });
+
+      const s = (w.status || "").trim().toLowerCase();
+      const stc = cells([cm.attrs.status != null ? ref(cm.attrs.status, w.row) : null]);
+      if (s === "бурение" && bur.e < asOf - 0.5) add("status", w, "статус «Бурение», а плановое окончание бурения " + fmt(bur.e) + " раньше даты файла " + fmt(asOf), { cells: stc });
+      else if (s === "бурение" && bur.s > asOf + 0.5) add("status", w, "статус «Бурение», а бурение по плану начинается " + fmt(bur.s), { cells: stc });
+      else if (/^окончен/.test(s) && bur.e > asOf + 1) add("status", w, "статус «" + w.status + "», а окончание бурения " + fmt(bur.e) + " позже даты файла " + fmt(asOf), { cells: stc });
+      else if ((s === "" || s === "план") && bur.s < asOf - 1) add("status", w, "бурение по плану началось " + fmt(bur.s) + ", а статус " + (s ? "«План»" : "не заполнен"), { cells: stc });
+
+      if (cm.attrs.frac != null) {
+        const needs = /ГРП/i.test(w.frac || "");
+        const fc = cells([ref(cm.attrs.frac, w.row)]);
+        if (needs && !st.grp) add("frac_mismatch", w, "в столбце «МГРП/ГРП» — «" + w.frac + "», а дат ГРП нет", { cells: fc });
+        if (!needs && st.grp) add("frac_mismatch", w, "даты ГРП есть, а столбец «МГРП/ГРП» " + (w.frac ? "— «" + w.frac + "»" : "пуст"), { cells: fc, stages: ["grp"] });
+      }
+      if (!w.footage) add("no_footage", w, "проходка не указана", { cells: cells([cm.attrs.footage != null ? ref(cm.attrs.footage, w.row) : null]) });
+      if (cm.attrs.first != null && (w.first === 0 || w.first === 1)) {
+        const fc = cells([ref(cm.attrs.first, w.row)]);
+        if (w.first === 1 && !st.montazh) add("first_flag", w, "отмечена первой скважиной куста, а монтажа БУ нет", { cells: fc });
+        if (w.first === 0 && st.montazh) add("first_flag", w, "есть монтаж БУ, а скважина не отмечена первой на кусте", { cells: fc });
+      }
+      const ap = alphabet(w.pad), aw = alphabet(w.well);
+      if (ap === "mix" || aw === "mix" || (ap && aw && ap !== aw)) {
+        add("alphabet", w, "куст «" + w.pad + "» набран " + (ALPHA[ap] || "без букв") + ", скважина «" + w.well + "» — " + (ALPHA[aw] || "без букв"), { cells: cells([cm.attrs.pad != null ? ref(cm.attrs.pad, w.row) : null, ref(cm.attrs.well, w.row)]) });
+      }
+    }
+
+    for (const w of m.orphans) {
+      for (const n of w.notes) add(n.code, w, n.text, { cells: cells([ref(n.col, w.row)]) });
+      const b = w.st.bur;
+      add("no_drill", w, b ? "заполнена только одна дата бурения (" + fmtRange(b.s, b.e) + "), на диаграмме скважины нет" : "нет дат бурения, на диаграмме скважины нет", { cells: cells([sc(w, "bur", "s"), sc(w, "bur", "e")]) });
+    }
+
+    // бригады: порядок кустов, пересечения и окна
+    const byRig = new Map();
+    for (const w of m.wells) {
+      if (w.rig === "—") continue;
+      if (!byRig.has(w.rig)) byRig.set(w.rig, []);
+      byRig.get(w.rig).push(w);
+    }
+    for (const [rig, list] of byRig) {
+      list.sort((a, b) => a.st.bur.s - b.st.bur.s || a.row - b.row);
+      for (let i = 1; i < list.length; i++) {
+        const a = list[i - 1], b = list[i];
+        if (fold(a.pad) === fold(b.pad)) {
+          if (!b.st.peredv && !b.st.montazh) add("no_move", b, "перед бурением нет ни передвижки, ни монтажа; предыдущая скважина куста у бригады — " + a.label, { cells: cells([sc(b, "peredv", "s")]) });
+        } else if (!b.st.montazh) {
+          add("pad_no_rigup", b, "бригада переходит с куста " + a.pad + " на " + b.pad + (b.st.peredv ? ", указана только передвижка" : ", монтажа нет"), { cells: cells([sc(b, "montazh", "s")]) });
+        }
+      }
+      const iv = [];
+      for (const w of list) for (const k of ["montazh", "peredv", "demontazh", "bur", "kons"]) {
+        const it = w.st[k];
+        if (it && it.s != null && it.e != null && it.e > it.s) iv.push({ s: it.s, e: it.e, w: w, k: k });
+      }
+      iv.sort((x, y) => x.s - y.s || x.e - y.e);
+      let maxE = -Infinity, maxIt = null;
+      for (const it of iv) {
+        if (maxIt && it.w !== maxIt.w && it.s < maxE - 0.5) {
+          add("rig_overlap", it.w, rig + ": " + lc(STAGE[it.k].name) + " " + it.w.label + " с " + fmt(it.s) + " пересекается с работой на " + maxIt.w.label + " (" + lc(STAGE[maxIt.k].name) + " до " + fmt(maxE) + ")", { cells: cells([sc(it.w, it.k, "s")]), stages: [it.k] });
+        } else if (maxIt && it.s - maxE > 3) {
+          add("rig_gap", it.w, rig + ": с " + fmt(maxE) + " по " + fmt(it.s) + " — " + NF.format(it.s - maxE) + " сут без работ между " + maxIt.w.label + " и " + it.w.label, { cells: cells([sc(it.w, it.k, "s")]) });
+        }
+        if (it.e > maxE) { maxE = it.e; maxIt = it; }
+      }
+    }
+
+    // повторы
+    const seen = new Map();
+    for (const w of m.wells.concat(m.orphans)) {
+      const key = fold(w.pad) + "|" + fold(w.well);
+      if (seen.has(key)) add("dup_well", w, "скважина " + w.label + " уже есть в строке " + seen.get(key).row, { cells: cells([ref(cm.attrs.well, w.row)]) });
+      else seen.set(key, w);
+    }
+    const nums = new Map();
+    for (const w of m.wells.concat(m.orphans)) if (w.n != null) {
+      if (!nums.has(w.n)) nums.set(w.n, []);
+      nums.get(w.n).push(w);
+    }
+    const dupN = [...nums].filter(([, ws]) => ws.length > 1);
+    if (dupN.length) add("dup_num", null, dupN.map(([n, ws]) => "№ " + n + " — " + ws.map((w) => w.label + " (стр. " + w.row + ")").join(", ")).join("; "));
+
+    // одно решение ИК с разными датами
+    const dec = new Map();
+    for (const w of m.wells) {
+      const mm = /(ИКК?\s*№?\s*\d+)\s+от\s+(\S+)/i.exec(w.fin || "");
+      if (!mm) continue;
+      const k = mm[1].replace(/\s+/g, " ");
+      if (!dec.has(k)) dec.set(k, new Map());
+      const d = dec.get(k);
+      if (!d.has(mm[2])) d.set(mm[2], []);
+      d.get(mm[2]).push(w.label);
+    }
+    for (const [k, d] of dec) if (d.size > 1) add("ik_dates", null, k + ": " + [...d].map(([dt, ws]) => "от " + dt + " — " + ws.join(", ")).join("; "));
+
+    // нетипичная скорость у плановых скважин
+    const byType = new Map();
+    for (const w of m.wells) if (planned(w) && w.footage > 0) {
+      const sp = (w.st.bur.e - w.st.bur.s) / (w.footage / 1000);
+      const k = w.rigType || "—";
+      if (!byType.has(k)) byType.set(k, []);
+      byType.get(k).push({ w: w, sp: sp });
+    }
+    for (const [, arr] of byType) {
+      if (arr.length < 4) continue;
+      const med = median(arr.map((x) => x.sp));
+      for (const x of arr) if (x.sp > med * 1.5 || x.sp < med * 0.6) {
+        add("speed_outlier", x.w, "бурение " + NF.format(x.w.st.bur.e - x.w.st.bur.s) + " сут на " + NF.format(x.w.footage) + " м — " + NF1.format(x.sp) + " сут/1000 м при обычных " + NF1.format(med), { cells: cells([sc(x.w, "bur", "s"), sc(x.w, "bur", "e")]) });
+      }
+    }
+
+    // годовые итоги по плановым скважинам (у пробуренных там может стоять факт)
+    function yearCheck(code, cols, expected, unit, emptyText) {
+      if (!cols.length) return;
+      for (const w of m.wells) {
+        if (!planned(w)) continue;
+        const exp = expected(w);
+        if (!exp) continue;
+        const row = ctx.rows[w.row - 1] || [];
+        const vals = cols.map((x) => ({ y: x.y, c: x.c, v: num(row[x.c]) || 0 }));
+        const total = vals.reduce((a, x) => a + x.v, 0);
+        if (Math.abs(total - exp) <= Math.max(1, exp * 0.02)) continue;
+        const nz = vals.filter((x) => x.v);
+        const text = total === 0
+          ? emptyText(NF1.format(exp))
+          : "в годовых столбцах " + NF1.format(total) + " " + unit + " (" + nz.map((x) => x.y + " — " + NF1.format(x.v)).join(", ") + "), а по графику " + NF1.format(exp);
+        const where = total === 0 ? [ref(cols[0].c, w.row) + "–" + ref(cols[cols.length - 1].c, w.row)] : nz.map((x) => ref(x.c, w.row));
+        add(code, w, text, { cells: cells(where) });
+      }
+    }
+    yearCheck("year_footage", cm.footYears, (w) => w.footage, "м", (v) => "проходка " + v + " м не попала ни в один годовой столбец");
+    yearCheck("year_days", cm.dayYears, (w) => w.st.bur.e - w.st.bur.s, "сут", (v) => v + " сут бурения не попали ни в один годовой столбец");
+
+    const viz = checkVizSheet(ctx, m);
+    if (viz) add("viz_stale", null, viz);
+
+    out.sort((a, b) => LEVEL_ORDER[a.level] - LEVEL_ORDER[b.level] || CHECK_ORDER.indexOf(a.code) - CHECK_ORDER.indexOf(b.code) || (a.row || 0) - (b.row || 0));
+    return out;
+  }
+
+  // Лист «Данные» заполняет макрос «перенос_гэб» — по нему строится «График визуализация».
+  function checkVizSheet(ctx, m) {
+    const X = ctx.X, wb = ctx.wb;
+    const dn = Object.keys(wb.Sheets).find((n) => /^\s*данные\s*$/i.test(n));
+    if (!dn) return null;
+    const rows = sheetRows(X, wb.Sheets[dn]);
+    const head = rows.findIndex((r) => r && norm(r[0]) === "Бригада");
+    if (head === -1) return null;
+    let first = null, years = null;
+    const un = Object.keys(wb.Sheets).find((n) => /^\s*управление\s*$/i.test(n));
+    if (un) for (const r of sheetRows(X, wb.Sheets[un])) {
+      const k = norm(r && r[0]);
+      if (k.startsWith("1.")) first = num(r[1]);
+      if (k.startsWith("2.")) years = num(r[1]);
+    }
+    const snap = new Map();
+    for (const r of rows.slice(head + 2)) {
+      if (!r || !norm(r[5])) continue;
+      snap.set(fold(String(r[5]).replace(/^`/, "")), { rig: norm(r[0]), s: toDay(r[10], ctx.d1904).day, e: toDay(r[11], ctx.d1904).day });
+    }
+    if (!snap.size) return null;
+    const cur = new Map();
+    for (const w of m.wells) {
+      const b = w.st.bur;
+      if (first && years && ![b.s, b.e].some((d) => yearOf(d) >= first && yearOf(d) <= first + years - 1)) continue;
+      cur.set(fold(w.well), { rig: w.rig, s: b.s, e: b.e });
+    }
+    const same = (a, b) => a.rig === b.rig && a.s != null && b.s != null && Math.abs(a.s - b.s) < 0.05 && a.e != null && b.e != null && Math.abs(a.e - b.e) < 0.05;
+    let missing = 0, extra = 0, changed = 0;
+    for (const [k, v] of cur) { if (!snap.has(k)) missing++; else if (!same(v, snap.get(k))) changed++; }
+    for (const k of snap.keys()) if (!cur.has(k)) extra++;
+    if (!missing && !extra && !changed) return null;
+    const period = first && years ? " за " + first + "–" + (first + years - 1) : "";
+    return "в листе «" + dn + "» " + snap.size + " скв., а в графике" + period + " — " + cur.size +
+      ": не хватает " + missing + ", лишних " + extra + ", другие даты бурения у " + changed +
+      ". «График визуализация» строится по этому листу — перезапустите макрос «перенос_гэб».";
+  }
+
+  /* ——— состояние ——— */
+  const STORE = "drilling-analyzer:v1";
+  const state = { rig: "all", pad: "all", only: false, view: "wells", zoom: "all", fin: true, level: "all" };
+  try { Object.assign(state, JSON.parse(localStorage.getItem(STORE) || "{}")); } catch (e) { /* без сохранения */ }
+  if (["#wells", "#rigs", "#load"].includes(location.hash)) state.view = location.hash.slice(1);
+  function save() {
+    try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) { /* без сохранения */ }
+  }
+
+  let M = null, WELLS = [], BY_ROW = new Map(), ORPH_BY_ROW = new Map(), RIGS = [], D0 = 0, D1 = 1;
+  let session = null, busy = null, fileError = null, geom = null, LOAD_OPS = [];
+  const expanded = new Set();
+
+  function setModel(model) {
+    M = model;
+    WELLS = model.wells.map(function (w, i) {
+      const segs = [];
+      for (const k in STAGE) {
+        const st = w.st[k];
+        if (!st || (st.s == null && st.e == null)) continue;
+        const s = st.s != null ? st.s : st.e, e = st.e != null ? st.e : st.s;
+        segs.push({ k: k, fam: STAGE[k].fam, s: Math.min(s, e), e: Math.max(s, e), d: st.d, open: st.s == null || st.e == null });
+      }
+      return Object.assign({}, w, { i: i, segs: segs, bur: w.st.bur, issues: [], dated: [], bad: new Set() });
+    });
+    BY_ROW = new Map(WELLS.map((w) => [w.row, w]));
+    ORPH_BY_ROW = new Map(model.orphans.map((w) => [w.row, w]));
+    for (const it of model.issues) {
+      const w = it.row != null ? BY_ROW.get(it.row) : null;
+      if (!w) continue;
+      w.issues.push(it);
+      if (!SHEET_CODES.has(it.code)) w.dated.push(it);
+      if (it.level === "error") for (const k of it.stages || []) w.bad.add(k);
+    }
+    RIGS = [...new Set(WELLS.slice().sort(bySeq).map((w) => w.rig))];
+    let lo = Infinity, hi = -Infinity;
+    for (const w of WELLS) {
+      for (const s of w.segs) { lo = Math.min(lo, s.s); hi = Math.max(hi, s.e); }
+      if (w.vvod != null) { lo = Math.min(lo, w.vvod); hi = Math.max(hi, w.vvod); }
+    }
+    const t0 = asDate(lo), t1 = asDate(hi);
+    D0 = utcDay(t0.getUTCFullYear(), Math.floor(t0.getUTCMonth() / 3) * 3);
+    D1 = utcDay(t1.getUTCFullYear(), Math.floor(t1.getUTCMonth() / 3) * 3 + 3);
+    if (state.rig !== "all" && !RIGS.includes(state.rig)) state.rig = "all";
+    if (state.pad !== "all" && !WELLS.some((w) => w.pad === state.pad)) state.pad = "all";
+    geom = null;
+    expanded.clear();
+    $("copy-area").replaceChildren();
+    renderAll();
+  }
+  const bySeq = (a, b) => a.bur.s - b.bur.s || a.row - b.row;
+  const inFilter = (w) => (state.rig === "all" || w.rig === state.rig) && (state.pad === "all" || w.pad === state.pad);
+  const scoped = () => WELLS.filter((w) => inFilter(w) && (!state.only || w.dated.length));
+  const isPale = (w) => state.fin && !w.finOk;
+  const rigSegs = (w) => w.segs.filter((s) => STAGE[s.k].rig);
+
+  /* ——— файл ——— */
+  let xlsxPromise = null;
+  function loadXLSX() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    if (!xlsxPromise) {
+      xlsxPromise = new Promise(function (resolve, reject) {
+        const s = document.createElement("script");
+        s.src = XLSX_SRC;
+        s.async = true;
+        s.onload = () => (window.XLSX ? resolve(window.XLSX) : reject(new UserError("Библиотека чтения Excel загрузилась с ошибкой.")));
+        s.onerror = function () {
+          xlsxPromise = null;
+          s.remove();
+          reject(new UserError("Не загрузилась библиотека чтения Excel (SheetJS с cdnjs.cloudflare.com). Проверьте подключение к интернету и откройте файл ещё раз."));
+        };
+        document.head.appendChild(s);
+      });
+    }
+    return xlsxPromise;
+  }
+  async function openFile(file) {
+    if (!file || busy) return;
+    if (!/\.(xlsb|xlsx|xlsm|xls)$/i.test(file.name)) {
+      fileError = "«" + file.name + "» — не книга Excel. Нужен файл .xlsb, .xlsx или .xlsm.";
+      renderFileBar();
+      return;
+    }
+    fileError = null;
+    busy = "Читаю «" + file.name + "» (" + fmtSize(file.size) + ")…";
+    renderFileBar();
+    try {
+      const X = await loadXLSX();
+      const data = new Uint8Array(await file.arrayBuffer());
+      await new Promise((r) => setTimeout(r, 40));
+      const book = readBook(X, data);
+      const meta = { name: file.name, size: file.size, lastModified: file.lastModified };
+      const model = buildModel(X, book.wb, book.sheets[0], meta);
+      model.file.sheets = book.sheets;
+      session = { X: X, wb: book.wb, meta: meta };
+      busy = null;
+      setModel(model);
+      window.__MODEL__ = model;
+    } catch (err) {
+      console.error(err);
+      fileError = err instanceof UserError ? err.message : "Не удалось прочитать файл: " + ((err && err.message) || err) + ". Если книга защищена паролем, снимите защиту и сохраните её заново.";
+    } finally {
+      busy = null;
+      renderFileBar();
+    }
+  }
+  function switchSheet(name) {
+    if (!session || busy) return;
+    try {
+      const model = buildModel(session.X, session.wb, name, session.meta);
+      model.file.sheets = M.file.sheets;
+      fileError = null;
+      setModel(model);
+    } catch (err) {
+      fileError = err instanceof UserError ? err.message : "Не удалось разобрать лист: " + ((err && err.message) || err);
+      renderFileBar();
+    }
+  }
+
+  function renderFileBar() {
+    const box = $("file-info");
+    box.replaceChildren();
+    const ic = svg("svg", { class: "file-ic", viewBox: "0 0 30 36", "aria-hidden": "true" }, box);
+    svg("path", { class: "pg", d: "M3 1.5h16l8 8v25H3z" }, ic);
+    svg("path", { d: "M19 1.5v8h8", fill: "none", stroke: "var(--grid-strong)" }, ic);
+    svg("path", { class: "ln3", d: "M8 17h9" }, ic);
+    svg("path", { class: "ln", d: "M11 22h11" }, ic);
+    svg("path", { class: "ln2", d: "M16 27h7" }, ic);
+    const txt = el("div", "file-text", null, box);
+    if (busy) {
+      const row = el("div", "file-name", null, txt);
+      row.style.display = "flex";
+      row.style.alignItems = "center";
+      row.style.gap = "10px";
+      el("span", "spinner", null, row);
+      el("span", null, busy, row);
+      el("div", "file-meta", "Разбираю лист графика и проверяю даты", txt);
+    } else if (M) {
+      const f = M.file || {};
+      el("div", "file-name", f.name || "График из файла от " + fmt(M.asOf), txt);
+      const meta = [];
+      if (f.size) meta.push(fmtSize(f.size));
+      meta.push("сохранён " + fmt(M.asOf));
+      meta.push("лист «" + (f.sheet || "график") + "»");
+      meta.push(M.wells.length + " " + plural(M.wells.length, ["скважина", "скважины", "скважин"]));
+      if (M.embedded) meta.push("встроен в страницу");
+      el("div", "file-meta", meta.join(" · "), txt);
+    } else {
+      el("div", "file-name", "Файл не выбран", txt);
+      el("div", "file-meta", "Откройте книгу графика .xlsb, .xlsx или .xlsm", txt);
+    }
+    if (fileError) {
+      const e = el("div", "file-err", null, txt);
+      e.appendChild(issueIcon("error"));
+      el("span", null, fileError, e);
+    }
+    $("open-btn").disabled = !!busy;
+    $("open-btn").textContent = M ? "Открыть другой файл" : "Открыть файл";
+    const sheets = M && M.file && M.file.sheets;
+    const wrap = $("sheet-wrap");
+    wrap.hidden = !(sheets && sheets.length > 1 && session);
+    if (!wrap.hidden) {
+      const sel = $("sheet-select");
+      sel.replaceChildren();
+      for (const n of sheets) { const o = el("option", null, n, sel); o.value = n; }
+      sel.value = M.file.sheet;
+    }
+  }
+
+  /* ——— шапка данных ——— */
+  function renderFilters() {
+    const rs = $("rig-filter");
+    rs.replaceChildren();
+    const a = el("option", null, "Все (" + RIGS.length + ")", rs);
+    a.value = "all";
+    for (const r of RIGS) { const o = el("option", null, r, rs); o.value = r; }
+    rs.value = state.rig;
+    const pads = [...new Set(WELLS.filter((w) => state.rig === "all" || w.rig === state.rig).sort(bySeq).map((w) => w.pad))];
+    if (state.pad !== "all" && !pads.includes(state.pad)) state.pad = "all";
+    const ps = $("pad-filter");
+    ps.replaceChildren();
+    const b = el("option", null, "Все (" + pads.length + ")", ps);
+    b.value = "all";
+    for (const p of pads) { const o = el("option", null, p, ps); o.value = p; }
+    ps.value = state.pad;
+    $("only-issues").checked = !!state.only;
+    $("fin-toggle").checked = !!state.fin;
+  }
+
+  function issuesInScope() {
+    return M.issues.filter(function (it) {
+      if (it.row == null) return true;
+      const w = BY_ROW.get(it.row) || ORPH_BY_ROW.get(it.row);
+      return !w || inFilter(w);
+    });
+  }
+
+  function renderStamp(ws) {
+    const st = (w) => (w.status || "").trim().toLowerCase();
+    const done = new Set(["окончена бурением", "освоение", "грп", "окончена строительством", "введена"]);
+    const drilled = ws.filter((w) => done.has(st(w))).length;
+    const drilling = ws.filter((w) => st(w) === "бурение").length;
+    const foot = ws.reduce((a, w) => a + (w.footage || 0), 0);
+    const fin = ws.filter((w) => w.finOk).length;
+    const rigs = new Set(ws.map((w) => w.rig)).size;
+    const pads = new Set(ws.map((w) => w.pad)).size;
+    const types = [...new Set(ws.map((w) => w.rigType).filter(Boolean))];
+    const idle = {};
+    for (const w of ws) for (const s of w.segs) if (s.k === "kons" && !s.open) idle[w.rig] = (idle[w.rig] || 0) + (s.e - s.s);
+    const idleTotal = Object.values(idle).reduce((x, y) => x + y, 0);
+    const idleText = Object.entries(idle).sort((x, y) => y[1] - x[1]).map(([r, d]) => r + " — " + NF.format(d)).join(", ");
+    const iss = issuesInScope();
+    const cnt = { error: 0, warn: 0, info: 0 };
+    for (const it of iss) cnt[it.level]++;
+    const cells = [
+      ["Скважин", NF.format(ws.length), ws.length ? "пробурено " + drilled + (drilling ? " · в бурении " + drilling : "") : "нет скважин по фильтру"],
+      ["Проходка, м", NF.format(foot), ws.length ? "в среднем " + NF.format(foot / ws.length) + " м на скважину" : ""],
+      ["Бригады / кусты", rigs + " / " + pads, types.join(", ") || "—"],
+      ["Финансирование ИК", fin + " из " + ws.length, fin === ws.length ? "утверждено для всех" : ws.length - fin + " — не утверждено"],
+      ["Простой БУ, сут", NF.format(idleTotal), idleTotal ? idleText : "в графике нет простоев"],
+    ];
+    const box = $("stamp");
+    box.replaceChildren();
+    for (const [t, v, s] of cells) {
+      const c = el("div", null, null, box);
+      el("dt", null, t, c);
+      const dd = el("dd", null, null, c);
+      el("div", "v", v, dd);
+      if (s) el("div", "s", s, dd);
+    }
+    const c = el("div", null, null, box);
+    el("dt", null, "Замечания", c);
+    const dd = el("dd", null, null, c);
+    const btn = el("button", "jump", null, dd);
+    btn.type = "button";
+    const v = el("span", "v", null, btn);
+    if (cnt.error) v.appendChild(issueIcon("error"));
+    else if (cnt.warn) v.appendChild(issueIcon("warn"));
+    el("span", null, cnt.error ? cnt.error + " " + plural(cnt.error, LEVELS.error.many) : "Ошибок нет", v);
+    el("span", "s", cnt.warn + " проверить · " + cnt.info + " к сведению", btn);
+    btn.addEventListener("click", () => $("issues-section").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" }));
+  }
+
+  /* ——— легенда ——— */
+  function swatch(parent, kind, cls) {
+    const s = svg("svg", { width: 16, height: 12, viewBox: "0 0 16 12", "aria-hidden": "true" }, parent);
+    if (kind === "bar") svg("rect", { x: 0, y: 1, width: 16, height: 10, rx: 2, class: cls }, s);
+    if (kind === "thin") svg("rect", { x: 0, y: 3.5, width: 16, height: 5, rx: 1.5, class: cls }, s);
+    if (kind === "bad") svg("rect", { x: 1, y: 2, width: 14, height: 8, rx: 2, class: "f-drill seg bad" }, s);
+    if (kind === "vnr") {
+      svg("line", { x1: 1, y1: 6, x2: 10, y2: 6, class: "vnr-line" }, s);
+      svg("path", { d: "M12 2.2 L15.8 6 L12 9.8 L8.2 6 Z", class: "vvod" }, s);
+    }
+    if (kind === "today") svg("line", { x1: 8, y1: 0, x2: 8, y2: 12, class: "today" }, s);
+    return s;
+  }
+  function renderLegend() {
+    const ul = $("legend");
+    ul.replaceChildren();
+    const item = (kind, cls, text) => { const li = el("li", null, null, ul); swatch(li, kind, cls); el("span", null, text, li); };
+    if (state.view !== "load") {
+      item("bar", "f-drill", FAM.drill.label);
+      item("bar", "f-vmr", "ВМР: монтаж, передвижка, демонтаж");
+      item("thin", "f-idle", "Консервация, простой");
+    }
+    if (state.view !== "rigs") {
+      item("bar", "f-krs", FAM.krs.label);
+      item("bar", "f-grp", FAM.grp.label);
+    }
+    if (state.view === "wells") {
+      item("vnr", null, "Обустройство, ВНР и ввод");
+      item("bad", null, "Этап с ошибкой");
+    }
+    if (NOW >= D0 && NOW <= D1) item("today", null, "Сегодня");
+  }
+
+  /* ——— измерение текста ——— */
+  const ctx2d = document.createElement("canvas").getContext("2d");
+  const condFont = () => getComputedStyle(document.documentElement).getPropertyValue("--f-cond");
+  function measure(text, size, weight) {
+    ctx2d.font = (weight || 600) + " " + size + "px " + condFont();
+    return ctx2d.measureText(text).width;
+  }
+
+  /* ——— диаграмма: общее ——— */
+  const LEFT = 8, RIGHT = 20, AX = 44;
+  function scale(viewW) {
+    const span = D1 - D0;
+    let ppd;
+    if (state.zoom === "1y") ppd = (viewW - LEFT - RIGHT) / 366;
+    else if (state.zoom === "2y") ppd = (viewW - LEFT - RIGHT) / 731;
+    else ppd = (Math.max(viewW, 880) - LEFT - RIGHT) / span;
+    return { ppd: ppd, width: Math.ceil(span * ppd + LEFT + RIGHT), x: (d) => LEFT + (d - D0) * ppd };
+  }
+  function drawAxis(g, sc, top, bottom, labelsY, noLines) {
+    const yA = labelsY, yQ = labelsY + 17;
+    const pxMonth = sc.ppd * 30.44;
+    const y0 = yearOf(D0), y1 = yearOf(D1 - 0.001);
+    for (let m = 0; ; m++) {
+      const d = utcDay(y0, m);
+      if (d >= D1) break;
+      if (d < D0) continue;
+      const mon = asDate(d).getUTCMonth();
+      const isYear = mon === 0, isQ = mon % 3 === 0;
+      if (!noLines && (isYear || isQ || pxMonth >= 30) && d > D0 + 0.5) {
+        svg("line", { x1: sc.x(d) + 0.5, x2: sc.x(d) + 0.5, y1: isYear ? top - 30 : top - 12, y2: bottom, class: isYear ? "grid-y" : "grid-q" }, g);
+      }
+      let label = null;
+      if (pxMonth >= 30) label = MONTHS[mon];
+      else if (isQ && pxMonth * 3 >= 40) label = QUARTERS[mon / 3];
+      if (label) svg("text", { x: sc.x(d) + 4, y: yQ, class: "ax-q" }, g).textContent = label;
+    }
+    for (let y = y0; y <= y1; y++) {
+      const a = Math.max(D0, utcDay(y, 0)), b = Math.min(D1, utcDay(y + 1, 0));
+      if (sc.x(b) - sc.x(a) < 34) continue;
+      svg("text", { x: sc.x(a) + 4, y: yA, class: "ax-y" }, g).textContent = String(y);
+    }
+  }
+  function drawToday(g, sc, top, bottom, labelY) {
+    if (NOW < D0 || NOW > D1) return;
+    const x = sc.x(NOW);
+    svg("line", { x1: x, x2: x, y1: top - 8, y2: bottom + 4, class: "today" }, g);
+    const text = "сегодня, " + fmt(NOW);
+    const tw = measure(text, 12);
+    const lx = Math.min(Math.max(x - tw / 2, 4), sc.width - tw - 4);
+    svg("rect", { x: lx - 5, y: labelY - 13, width: tw + 10, height: 18, rx: 4, class: "today-bg" }, g);
+    svg("text", { x: lx, y: labelY, class: "today-lbl" }, g).textContent = text;
+  }
+  function segRect(g, s, sc, y, h, w) {
+    const xa = sc.x(s.s), xb = sc.x(s.e);
+    let x = xa, width = xb - xa;
+    if (s.open) { x = xa - 1.25; width = 2.5; }
+    else if (width > 4) { x = xa + 1; width -= 2; }
+    else width = Math.max(width, 1.5);
+    const cls = "seg " + FAM[s.fam].cls + (isPale(w) ? " pale" : "") + (w.bad.has(s.k) ? " bad" : "");
+    return svg("rect", { x: x.toFixed(2), y: y, width: width.toFixed(2), height: h, rx: Math.min(2, width / 2).toFixed(2), class: cls, "data-k": s.k }, g);
+  }
+  function barLabel(g, s, sc, y, h, w, text) {
+    if (s.open) return false;
+    const xa = sc.x(s.s), xb = sc.x(s.e);
+    const tw = measure(text, 10.5);
+    if (xb - xa < tw + 8) return false;
+    svg("text", { x: (xa + xb) / 2, y: y + h / 2 + 3.7, "text-anchor": "middle", class: "bl " + FAM[s.fam].bl + (isPale(w) ? " on-pale" : "") }, g).textContent = text;
+    return true;
+  }
+  function wellAria(w) {
+    const b = w.bur;
+    return w.label + ", куст " + w.pad + ", бурение " + fmtRange(b.s, b.e) + (w.footage ? ", проходка " + NF.format(w.footage) + " м" : "") +
+      (w.vvod != null ? ", ввод " + fmt(w.vvod) : "") + (w.issues.length ? ", замечаний: " + w.issues.length : "");
+  }
+  function worstLevel(w, datedOnly) {
+    let best = null;
+    for (const it of datedOnly ? w.dated : w.issues) if (best == null || LEVEL_ORDER[it.level] < LEVEL_ORDER[best]) best = it.level;
+    return best;
+  }
+  function currentState(ws) {
+    const segs = [];
+    for (const w of ws) for (const s of rigSegs(w)) segs.push(Object.assign({ w: w }, s));
+    if (!segs.length) return { fam: null, text: "" };
+    const at = segs.filter((s) => s.s <= NOW && NOW < s.e);
+    const pick = at.find((s) => s.fam === "drill") || at.find((s) => s.fam === "vmr") || at.find((s) => s.fam === "idle");
+    if (pick) {
+      if (pick.fam === "drill") return { fam: "drill", text: "сейчас бурение " + pick.w.well + " до " + fmt(pick.e) };
+      if (pick.fam === "vmr") return { fam: "vmr", text: "сейчас " + lc(STAGE[pick.k].name) + " до " + fmt(pick.e) };
+      return { fam: "idle", text: "сейчас простой до " + fmt(pick.e) };
+    }
+    const first = Math.min(...segs.map((s) => s.s)), last = Math.max(...segs.map((s) => s.e));
+    if (NOW < first) return { fam: null, text: "начало работ " + fmt(first) };
+    if (NOW >= last) return { fam: null, text: "работы по графику завершены " + fmt(last) };
+    const next = Math.min(...segs.filter((s) => s.s > NOW).map((s) => s.s));
+    return { fam: null, text: "без работ до " + fmt(next) };
+  }
+  function laneEmpty(labels, scroller, text) {
+    const box = el("div", "gantt-empty", text);
+    scroller.replaceChildren(box);
+    labels.replaceChildren();
+  }
+
+  /* ——— вид: все процессы по скважинам ——— */
+  function renderProcesses(root, labels, sc, ws) {
+    const GROUP = 32, ROW = 36, T1 = 4, T2 = 17, TH = 10, T3 = 31, BOT = 30;
+    const list = [];
+    for (const rig of RIGS) {
+      const rw = ws.filter((w) => w.rig === rig).sort(bySeq);
+      if (!rw.length) continue;
+      list.push({ type: "group", rig: rig, n: rw.length });
+      let prev = null;
+      for (const w of rw) { list.push({ type: "well", w: w, padStart: w.pad !== prev }); prev = w.pad; }
+    }
+    const bodyH = list.reduce((a, r) => a + (r.type === "group" ? GROUP : ROW), 0);
+    const longList = list.length > 16;
+    const gridBottom = AX + bodyH;
+    const H = gridBottom + BOT + (longList ? AX - 6 : 0);
+    root.setAttribute("height", H);
+    const g = svg("g", null, root);
+    drawAxis(g, sc, AX, gridBottom, 16);
+    svg("line", { x1: 0, x2: sc.width, y1: AX + 0.5, y2: AX + 0.5, class: "axis" }, g);
+    el("div", "lab-cap", "Скважина", labels).style.height = AX + "px";
+
+    let y = AX;
+    for (const r of list) {
+      if (r.type === "group") {
+        svg("rect", { x: 0, y: y, width: sc.width, height: GROUP, class: "band" }, g);
+        svg("line", { x1: 0, x2: sc.width, y1: y + 0.5, y2: y + 0.5, class: "sep" }, g);
+        const lab = el("div", "grp-lab", null, labels);
+        lab.style.height = GROUP + "px";
+        el("b", null, r.rig, lab);
+        el("span", null, r.n + " скв.", lab);
+        y += GROUP;
+        continue;
+      }
+      const w = r.w;
+      if (r.padStart) svg("line", { x1: 0, x2: sc.width, y1: y + 0.5, y2: y + 0.5, class: "sep-pad" }, g);
+      const lab = el("div", "row-lab" + (r.padStart ? " pad-start" : ""), null, labels);
+      lab.style.height = ROW + "px";
+      lab.dataset.w = w.i;
+      el("span", null, w.label, lab);
+      if (r.padStart) el("small", null, "куст " + w.pad, lab);
+      const lvl = worstLevel(w, true);
+      if (lvl && lvl !== "info") lab.appendChild(issueIcon(lvl, "есть замечания к датам"));
+
+      const grp = svg("g", { class: "w", "data-w": w.i, tabindex: 0, role: "img", "aria-label": wellAria(w) }, g);
+      svg("rect", { x: 0, y: y, width: sc.width, height: ROW, class: "hit" }, grp);
+      const t1 = w.segs.filter((s) => STAGE[s.k].rig);
+      const t2 = w.segs.filter((s) => !STAGE[s.k].rig && s.fam !== "vnr");
+      for (const s of t1.filter((z) => z.fam === "idle")) segRect(grp, s, sc, y + T1 + 2, 5, w);
+      for (const s of t1.filter((z) => z.fam !== "idle")) segRect(grp, s, sc, y + T1, TH, w);
+      for (const s of t2.filter((z) => z.fam === "idle")) segRect(grp, s, sc, y + T2 + 2, 5, w);
+      for (const s of t2.filter((z) => z.fam !== "idle")) segRect(grp, s, sc, y + T2, TH, w);
+      for (const s of t1.concat(t2)) if (s.fam !== "idle") barLabel(grp, s, sc, y + (STAGE[s.k].rig ? T1 : T2), TH, w, STAGE[s.k].short);
+      const vn = w.segs.filter((s) => s.fam === "vnr");
+      const yl = y + T3;
+      if (vn.length) {
+        const a = Math.min(...vn.map((s) => s.s));
+        const b = Math.max(...vn.map((s) => s.e));
+        const bad = vn.some((s) => w.bad.has(s.k));
+        svg("line", { x1: sc.x(a), x2: Math.max(sc.x(b), sc.x(a) + 1), y1: yl, y2: yl, class: "vnr-line" + (isPale(w) ? " pale" : "") + (bad ? " bad" : ""), "data-k": "vnr" }, grp);
+      }
+      if (w.vvod != null) {
+        const vx = sc.x(w.vvod);
+        svg("path", { d: "M" + vx + " " + (yl - 4.5) + "L" + (vx + 4.5) + " " + yl + "L" + vx + " " + (yl + 4.5) + "L" + (vx - 4.5) + " " + yl + "Z", class: "vvod" + (w.bad.has("vvod") ? " bad" : ""), "data-k": "vvod" }, grp);
+      }
+      y += ROW;
+    }
+    svg("line", { x1: 0, x2: sc.width, y1: gridBottom + 0.5, y2: gridBottom + 0.5, class: "axis" }, g);
+    if (longList) drawAxis(g, sc, gridBottom, gridBottom, gridBottom + 18, true);
+    const end = el("div", null, null, labels);
+    end.style.height = H - gridBottom + "px";
+    end.style.borderTop = "1px solid var(--rule)";
+    drawToday(g, sc, AX, gridBottom, H - 9);
+  }
+
+  /* ——— вид: бурение по бригадам ——— */
+  function renderRigs(root, labels, sc, ws) {
+    const lanes = RIGS.map(function (rig) {
+      const list = ws.filter((w) => w.rig === rig).sort(bySeq);
+      const visits = [];
+      for (const w of list) {
+        const last = visits[visits.length - 1];
+        if (last && last.pad === w.pad) last.wells.push(w);
+        else visits.push({ pad: w.pad, wells: [w] });
+      }
+      return { rig: rig, wells: list, visits: visits };
+    }).filter((l) => l.wells.length);
+    const LANE = 104, BAR = 18, BOT = 30;
+    const H = AX + lanes.length * LANE + BOT;
+    root.setAttribute("height", H);
+    const g = svg("g", null, root);
+    drawAxis(g, sc, AX, H - BOT + 6, 16);
+    svg("line", { x1: 0, x2: sc.width, y1: AX + 0.5, y2: AX + 0.5, class: "axis" }, g);
+    el("div", "lab-cap", "Бригада", labels).style.height = AX + "px";
+
+    lanes.forEach(function (lane, li) {
+      const y0 = AX + li * LANE;
+      if (li) svg("line", { x1: 0, x2: sc.width, y1: y0 + 0.5, y2: y0 + 0.5, class: "sep" }, g);
+      const yPad = y0 + 16, yFar = y0 + 40, yNear = y0 + 56, yBar = y0 + 61, yNote = yBar + BAR + 14;
+      const lab = el("div", "lane-lab", null, labels);
+      lab.style.height = LANE + "px";
+      if (!li) lab.style.borderTop = "0";
+      el("div", "n", lane.rig, lab);
+      const first = lane.wells[0] || {};
+      const foot = lane.wells.reduce((a, w) => a + (w.footage || 0), 0);
+      el("div", "t", [first.rigType, lane.wells.length + " скв.", NF.format(foot) + " м"].filter(Boolean).join(" · "), lab);
+      const cur = currentState(lane.wells);
+      if (cur.text) {
+        const nowEl = el("div", "now", null, lab);
+        const dot = el("i", null, null, nowEl);
+        if (cur.fam) dot.style.setProperty("--c", FAM[cur.fam].color);
+        el("span", null, cur.text, nowEl);
+      }
+
+      let padRight = -Infinity;
+      lane.visits.forEach(function (v, vi) {
+        const starts = v.wells.flatMap((w) => rigSegs(w).map((s) => s.s));
+        const xa = sc.x(Math.min(...starts)), xb = sc.x(Math.max(...v.wells.map((w) => w.bur.e)));
+        svg("path", { d: "M" + (xa + 1.5) + " " + (yPad + 9) + "V" + (yPad + 4) + "H" + Math.max(xb - 1.5, xa + 3) + "V" + (yPad + 9), class: "bracket" }, g);
+        const next = lane.visits[vi + 1];
+        const limit = next ? sc.x(Math.min(...next.wells.flatMap((w) => rigSegs(w).map((s) => s.s)))) - 8 : sc.width - RIGHT;
+        const full = "Куст " + v.pad + " · " + v.wells.length + " скв.";
+        const avail = limit - xa - 2;
+        const text = measure(full, 12) <= avail ? full : measure(v.pad, 12) <= avail ? v.pad : null;
+        if (text && xa + 2 > padRight) {
+          svg("text", { x: xa + 2, y: yPad, class: "pad-lbl" }, g).textContent = text;
+          padRight = xa + 2 + measure(text, 12);
+        }
+      });
+
+      const rows = { near: -Infinity, far: -Infinity };
+      const nearSpans = [], leaders = [];
+      let noteRight = -Infinity;
+      for (const w of lane.wells) {
+        const segs = rigSegs(w);
+        const grp = svg("g", { class: "w", "data-w": w.i, tabindex: 0, role: "img", "aria-label": wellAria(w) }, g);
+        const hx = Math.min(...segs.map((s) => sc.x(s.s)));
+        const hw = Math.max(...segs.map((s) => sc.x(s.e))) - hx;
+        svg("rect", { x: hx, y: yBar - 6, width: Math.max(hw, 8), height: BAR + 12, class: "hit" }, grp);
+        for (const s of segs.filter((z) => z.fam === "idle")) segRect(grp, s, sc, yBar + 6, 6, w);
+        for (const s of segs.filter((z) => z.fam !== "idle")) segRect(grp, s, sc, yBar, BAR, w);
+        const b = w.bur;
+        const xa = sc.x(b.s), xb = sc.x(b.e), cx = (xa + xb) / 2;
+        const name = w.label !== w.well ? w.well : w.label;
+        const tw = measure(name, 11.5);
+        if (xb - xa >= tw + 12) {
+          svg("text", { x: cx, y: yBar + BAR / 2 + 4, "text-anchor": "middle", class: "bl " + FAM.drill.bl + (isPale(w) ? " on-pale" : "") }, grp).textContent = name;
+        } else {
+          const lx = Math.min(Math.max(cx - tw / 2, 2), sc.width - tw - 2);
+          if (lx >= rows.near + 5) {
+            rows.near = lx + tw;
+            nearSpans.push([lx - 2, lx + tw + 2]);
+            svg("text", { x: lx, y: yNear, class: "lbl" }, grp).textContent = name;
+          } else if (lx >= rows.far + 5) {
+            rows.far = lx + tw;
+            svg("text", { x: lx, y: yFar, class: "lbl" }, grp).textContent = name;
+            leaders.push([grp, cx]);
+          }
+        }
+        for (const s of segs.filter((z) => z.fam === "idle" && !z.open)) {
+          const text = "простой " + NF.format(s.e - s.s) + " сут";
+          const ntw = measure(text, 11.5, 500);
+          const ncx = (sc.x(s.s) + sc.x(s.e)) / 2;
+          const nlx = Math.min(Math.max(ncx - ntw / 2, 2), sc.width - ntw - 2);
+          if (nlx > noteRight + 8) {
+            svg("text", { x: nlx, y: yNote, class: "note" }, grp).textContent = text;
+            noteRight = nlx + ntw;
+          }
+        }
+      }
+      for (const [grp, cx] of leaders) {
+        if (nearSpans.some(([a, b]) => cx >= a && cx <= b)) continue;
+        grp.insertBefore(svg("line", { x1: cx, x2: cx, y1: yFar + 4, y2: yBar - 2, class: "leader" }), grp.firstChild);
+      }
+    });
+    const end = el("div", null, null, labels);
+    end.style.height = BOT + "px";
+    end.style.borderTop = "1px solid var(--rule)";
+    svg("line", { x1: 0, x2: sc.width, y1: H - BOT + 0.5, y2: H - BOT + 0.5, class: "sep" }, g);
+    drawToday(g, sc, AX, H - BOT, H - 9);
+  }
+
+  /* ——— вид: загрузка сервисов ——— */
+  function buildOps(ws) {
+    const lanes = [];
+    for (const svc of SERVICES) {
+      const ops = [];
+      for (const w of ws) {
+        const segs = w.segs.filter((s) => STAGE[s.k].svc === svc.id && !s.open && s.e > s.s).sort((a, b) => a.s - b.s);
+        let cur = null;
+        for (const s of segs) {
+          if (cur && s.s - cur.e <= 3) { cur.e = Math.max(cur.e, s.e); cur.segs.push(s); }
+          else { cur = { w: w, svc: svc, s: s.s, e: s.e, segs: [s] }; ops.push(cur); }
+        }
+      }
+      if (!ops.length) continue;
+      ops.sort((a, b) => a.s - b.s || a.e - b.e);
+      const ends = [];
+      let peakAt = null;
+      for (const op of ops) {
+        let r = ends.findIndex((e) => e <= op.s + 0.01);
+        if (r === -1) { r = ends.length; ends.push(op.e); peakAt = op.s; }
+        else ends[r] = op.e;
+        op.r = r;
+      }
+      lanes.push({ svc: svc, ops: ops, rows: ends.length, peakAt: peakAt });
+    }
+    return lanes;
+  }
+  function renderLoad(root, labels, sc, ws) {
+    const lanes = buildOps(ws);
+    LOAD_OPS = [];
+    if (!lanes.length) return false;
+    const PADT = 12, RH = 20, BH = 14, BOT = 30, MINH = 100;
+    const heights = lanes.map((l) => Math.max(MINH, PADT + l.rows * RH + 10));
+    const H = AX + heights.reduce((a, b) => a + b, 0) + BOT;
+    root.setAttribute("height", H);
+    const g = svg("g", null, root);
+    drawAxis(g, sc, AX, H - BOT + 6, 16);
+    svg("line", { x1: 0, x2: sc.width, y1: AX + 0.5, y2: AX + 0.5, class: "axis" }, g);
+    el("div", "lab-cap", "Сервис", labels).style.height = AX + "px";
+    let y0 = AX;
+    lanes.forEach(function (lane, li) {
+      const h = heights[li];
+      if (li) svg("line", { x1: 0, x2: sc.width, y1: y0 + 0.5, y2: y0 + 0.5, class: "sep" }, g);
+      const lab = el("div", "lane-lab", null, labels);
+      lab.style.height = h + "px";
+      if (!li) lab.style.borderTop = "0";
+      el("div", "n", lane.svc.name, lab);
+      el("div", "t", lane.ops.length + " " + plural(lane.ops.length, ["операция", "операции", "операций"]), lab);
+      const nowEl = el("div", "now", null, lab);
+      el("i", null, null, nowEl).style.setProperty("--c", FAM[lane.svc.fam].color);
+      el("span", null, "до " + lane.rows + " одновременно" + (lane.rows > 1 && lane.peakAt != null ? ", впервые " + fmt(lane.peakAt) : ""), nowEl);
+      for (const op of lane.ops) {
+        const idx = LOAD_OPS.push(op) - 1;
+        const w = op.w;
+        const grp = svg("g", { class: "w", "data-w": w.i, "data-op": idx, tabindex: 0, role: "img", "aria-label": lane.svc.name + ": " + w.label + ", " + fmtRange(op.s, op.e) }, g);
+        const y = y0 + PADT + op.r * RH;
+        const xa = sc.x(op.s), xb = sc.x(op.e);
+        svg("rect", { x: xa - 2, y: y - 3, width: Math.max(xb - xa, 2) + 4, height: BH + 6, class: "hit" }, grp);
+        const fake = { k: op.segs[0].k, fam: lane.svc.fam, s: op.s, e: op.e, open: false };
+        const r = segRect(grp, fake, sc, y, BH, w);
+        if (op.segs.some((s) => w.bad.has(s.k))) r.classList.add("bad");
+        barLabel(grp, fake, sc, y, BH, w, w.label !== w.well ? w.well : w.label);
+      }
+      y0 += h;
+    });
+    const end = el("div", null, null, labels);
+    end.style.height = BOT + "px";
+    end.style.borderTop = "1px solid var(--rule)";
+    svg("line", { x1: 0, x2: sc.width, y1: H - BOT + 0.5, y2: H - BOT + 0.5, class: "sep" }, g);
+    drawToday(g, sc, AX, H - BOT, H - 9);
+    return true;
+  }
+
+  function renderGantt(keep) {
+    const scroller = $("gantt-scroll"), labels = $("gantt-labels");
+    const prev = geom;
+    const viewW = scroller.clientWidth || 800;
+    const scrollable = prev && prev.sc.width > viewW + 1;
+    const center = keep && scrollable ? (scroller.scrollLeft + viewW / 2 - LEFT) / prev.sc.ppd + D0 : null;
+    const sc = scale(viewW);
+    const ws = scoped();
+    for (const b of document.querySelectorAll("[data-view]")) b.setAttribute("aria-selected", String(b.dataset.view === state.view));
+    for (const b of document.querySelectorAll("[data-zoom]")) b.setAttribute("aria-pressed", String(b.dataset.zoom === state.zoom));
+    hideTip();
+    if (!ws.length) { geom = null; laneEmpty(labels, scroller, "Нет скважин по выбранным фильтрам."); return; }
+    labels.replaceChildren();
+    const names = { wells: "Все процессы по скважинам", rigs: "Бурение по бригадам", load: "Загрузка бригад КРС и флотов ГРП" };
+    const root = svg("svg", { class: "gantt-svg", width: sc.width, role: "group", "aria-label": names[state.view] });
+    if (state.view === "rigs") renderRigs(root, labels, sc, ws);
+    else if (state.view === "load") {
+      if (!renderLoad(root, labels, sc, ws)) { geom = null; laneEmpty(labels, scroller, "В графике нет дат КРС, освоения, ГРП, ГНКТ и ГКИ для выбранных скважин."); return; }
+    } else renderProcesses(root, labels, sc, ws);
+    scroller.replaceChildren(root);
+    geom = { sc: sc, root: root };
+    if (center != null) scroller.scrollLeft = sc.x(center) - viewW / 2;
+    else if (sc.width > viewW + 1) scroller.scrollLeft = (NOW > D0 && NOW < D1 ? sc.x(NOW) : sc.x(D0)) - viewW * 0.3;
+    else scroller.scrollLeft = 0;
+    bindHover(root);
+  }
+
+  /* ——— подсказка ——— */
+  const tip = $("tip");
+  let tipPinned = false;
+  function keyBar(parent, fam) {
+    const k = el("span", "tip-key", null, parent);
+    k.style.background = FAM[fam] ? FAM[fam].color : "var(--ink)";
+    return k;
+  }
+  function stageLine(parent, s, w) {
+    keyBar(parent, s.fam);
+    el("span", w.bad.has(s.k) ? "bad-step" : null, STAGE[s.k].name, parent);
+    el("span", "d", s.open ? "с " + fmt(s.s) : fmt(s.s) + " – " + fmt(s.e) + " · " + days(s.e - s.s), parent);
+  }
+  function fillTip(w, k, op) {
+    tip.replaceChildren();
+    const h = el("div", "tip-h", null, tip);
+    el("b", null, w.label, h);
+    el("span", null, "куст " + w.pad + " · " + w.rig, h);
+    const main = el("div", "tip-main", null, tip);
+    if (op) {
+      keyBar(main, op.svc.fam);
+      el("strong", null, days(op.e - op.s), main);
+      el("em", null, op.svc.name + " · " + fmtRange(op.s, op.e), main);
+      const steps = el("div", "steps", null, tip);
+      for (const s of op.segs) stageLine(steps, s, w);
+    } else if (k === "vvod") {
+      el("strong", null, fmt(w.vvod), main);
+      el("em", null, "ввод в эксплуатацию", main);
+    } else {
+      const seg = w.segs.find((s) => s.k === (k || "bur"));
+      if (seg) {
+        keyBar(main, seg.fam);
+        el("strong", null, seg.open ? "—" : days(seg.e - seg.s), main);
+        el("em", null, STAGE[seg.k].name + (seg.open ? " с " + fmt(seg.s, true) + ", окончание не указано" : " · " + fmtRange(seg.s, seg.e, true)), main);
+      }
+      const rest = state.view === "wells" ? w.segs.filter((s) => s !== seg) : rigSegs(w).filter((s) => s !== seg);
+      if (rest.length) {
+        const steps = el("div", "steps", null, tip);
+        for (const s of rest) stageLine(steps, s, w);
+      }
+    }
+    const dl = el("dl", null, null, tip);
+    const add = (t, v) => { if (v) { el("dt", null, t, dl); el("dd", null, v, dl); } };
+    add("Проходка", w.footage ? NF.format(w.footage) + " м" : "");
+    add("Профиль", [w.profile, w.wellType, w.purpose].filter(Boolean).join(" · "));
+    add("ГРП", w.frac ? w.frac + (w.fracStages ? ", " + w.fracStages + " стадий" : "") : "");
+    add("Статус", w.status || "план");
+    add("Финансир.", w.fin || "—");
+    if (k !== "vvod") add("Ввод", w.vvod != null ? fmt(w.vvod) : "");
+    add("Строка", String(w.row));
+    for (const it of w.issues.slice(0, 5)) {
+      const row = el("div", "tip-issue", null, tip);
+      row.appendChild(issueIcon(it.level));
+      el("span", null, it.text, row);
+    }
+    if (w.issues.length > 5) el("div", "tip-issue", "и ещё " + (w.issues.length - 5) + " — в списке замечаний", tip);
+  }
+  function placeTip(x, y) {
+    tip.hidden = false;
+    const r = tip.getBoundingClientRect();
+    let left = x + 16, top = y + 16;
+    if (left + r.width > window.innerWidth - 8) left = Math.max(8, x - r.width - 16);
+    if (top + r.height > window.innerHeight - 8) top = Math.max(8, y - r.height - 16);
+    tip.style.transform = "translate(" + Math.round(left) + "px," + Math.round(top) + "px)";
+  }
+  function hideTip() {
+    tip.hidden = true;
+    tipPinned = false;
+    if (geom) {
+      geom.root.classList.remove("hovering");
+      for (const n of geom.root.querySelectorAll(".w.on")) n.classList.remove("on");
+    }
+    for (const n of document.querySelectorAll(".row-lab.hl")) n.classList.remove("hl");
+  }
+  function activate(grp, k) {
+    const w = WELLS[+grp.dataset.w];
+    const op = grp.dataset.op != null ? LOAD_OPS[+grp.dataset.op] : null;
+    geom.root.classList.add("hovering");
+    for (const n of geom.root.querySelectorAll(".w.on")) if (n !== grp) n.classList.remove("on");
+    grp.classList.add("on");
+    for (const n of document.querySelectorAll(".row-lab")) n.classList.toggle("hl", n.dataset.w === grp.dataset.w);
+    fillTip(w, k, op);
+  }
+  function bindHover(root) {
+    root.addEventListener("pointermove", function (e) {
+      if (tipPinned && e.pointerType !== "mouse") return;
+      const grp = e.target.closest(".w");
+      if (!grp) { if (!tipPinned) hideTip(); return; }
+      const kEl = e.target.closest("[data-k]");
+      activate(grp, kEl ? kEl.dataset.k : null);
+      placeTip(e.clientX, e.clientY);
+    });
+    root.addEventListener("pointerleave", function (e) { if (e.pointerType === "mouse") hideTip(); });
+    root.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse") return;
+      const grp = e.target.closest(".w");
+      if (!grp) { hideTip(); return; }
+      const kEl = e.target.closest("[data-k]");
+      activate(grp, kEl ? kEl.dataset.k : null);
+      placeTip(e.clientX, e.clientY);
+      tipPinned = true;
+    });
+    root.addEventListener("focusin", function (e) {
+      const grp = e.target.closest(".w");
+      if (!grp) return;
+      activate(grp, null);
+      const bar = grp.querySelector('[data-k="bur"]') || grp.querySelector(".seg") || grp;
+      const rb = bar.getBoundingClientRect();
+      placeTip(Math.max(rb.left, 8), rb.bottom - 8);
+    });
+    root.addEventListener("focusout", hideTip);
+  }
+  document.addEventListener("pointerdown", function (e) {
+    if (tipPinned && !e.target.closest(".gantt-svg")) hideTip();
+  });
+  window.addEventListener("scroll", function () { if (!tipPinned) hideTip(); }, { passive: true });
+  $("gantt-scroll").addEventListener("scroll", function () { hideTip(); }, { passive: true });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") hideTip(); });
+
+  /* ——— значки ——— */
+  function issueIcon(level, label) {
+    const s = svg("svg", { class: "ic", viewBox: "0 0 18 18", role: "img", "aria-label": label || LEVELS[level].label });
+    if (level === "error") {
+      svg("circle", { cx: 9, cy: 9, r: 8, fill: "var(--crit)" }, s);
+      svg("path", { d: "M6 6l6 6M12 6l-6 6", stroke: "#fff", "stroke-width": 1.8, "stroke-linecap": "round" }, s);
+    } else if (level === "warn") {
+      svg("path", { d: "M9 1.6l7.6 13.6H1.4z", fill: "var(--warn)", stroke: "var(--warn)", "stroke-width": 1.2, "stroke-linejoin": "round" }, s);
+      svg("path", { d: "M9 6.2v4.6", stroke: "#121a21", "stroke-width": 1.8, "stroke-linecap": "round" }, s);
+      svg("circle", { cx: 9, cy: 13.1, r: 1.05, fill: "#121a21" }, s);
+    } else {
+      svg("circle", { cx: 9, cy: 9, r: 7.6, fill: "none", stroke: "var(--muted)", "stroke-width": 1.5 }, s);
+      svg("path", { d: "M9 8v5", stroke: "var(--muted)", "stroke-width": 1.8, "stroke-linecap": "round" }, s);
+      svg("circle", { cx: 9, cy: 5.4, r: 1.05, fill: "var(--muted)" }, s);
+    }
+    return s;
+  }
+
+  /* ——— таблица по годам ——— */
+  function overlap(s, e, a, b) { return Math.max(0, Math.min(e, b) - Math.max(s, a)); }
+  function renderYears(ws) {
+    const y0 = yearOf(D0), y1 = yearOf(D1 - 0.001);
+    const rows = [];
+    for (let y = y0; y <= y1; y++) {
+      const a = utcDay(y, 0), b = utcDay(y + 1, 0);
+      const r = { y: y, started: 0, finished: 0, grp: 0, vvod: 0, foot: 0, drill: 0, vmr: 0, idle: 0 };
+      for (const w of ws) {
+        const bs = w.bur.s, be = w.bur.e;
+        if (bs >= a && bs < b) r.started++;
+        if (be >= a && be < b) r.finished++;
+        if (w.st.grp && w.st.grp.s != null && w.st.grp.s >= a && w.st.grp.s < b) r.grp++;
+        if (w.vvod != null && w.vvod >= a && w.vvod < b) r.vvod++;
+        if (be > bs && w.footage) r.foot += (w.footage * overlap(bs, be, a, b)) / (be - bs);
+        for (const s of rigSegs(w)) if (!s.open) r[s.fam] += overlap(s.s, s.e, a, b);
+      }
+      if (r.started || r.finished || r.grp || r.vvod || r.foot || r.drill || r.vmr || r.idle) rows.push(r);
+    }
+    const maxFoot = Math.max(1, ...rows.map((r) => r.foot));
+    const maxTime = Math.max(1, ...rows.map((r) => r.drill + r.vmr + r.idle));
+    const table = el("table");
+    const hr = el("tr", null, null, el("thead", null, null, table));
+    const heads = [["Год", ""], ["Начато бурение", "num"], ["Окончено бурение", "num"], ["Проходка, м", ""], ["Бурение, сут", "num"], ["ВМР, сут", "num"], ["Простой, сут", "num"], ["Баланс времени БУ", ""], ["ГРП, скв.", "num"], ["Ввод, скв.", "num"]];
+    for (const [t, c] of heads) el("th", c, t, hr).scope = "col";
+    const tb = el("tbody", null, null, table);
+    const tot = { started: 0, finished: 0, grp: 0, vvod: 0, foot: 0, drill: 0, vmr: 0, idle: 0 };
+    const dash = (n) => (n ? String(n) : "—");
+    for (const r of rows) {
+      for (const k in tot) tot[k] += r[k];
+      const tr = el("tr", null, null, tb);
+      el("td", "nw", String(r.y), tr).style.fontWeight = "600";
+      el("td", "num", dash(r.started), tr);
+      el("td", "num", dash(r.finished), tr);
+      const cell = el("div", "bar-cell", null, el("td", null, null, tr));
+      el("b", null, r.foot ? NF.format(r.foot) : "—", cell);
+      el("span", null, null, el("div", "hbar", null, cell)).style.width = ((r.foot / maxFoot) * 100).toFixed(1) + "%";
+      el("td", "num", NF.format(r.drill), tr);
+      el("td", "num", NF.format(r.vmr), tr);
+      el("td", "num", r.idle ? NF.format(r.idle) : "—", tr);
+      const stack = el("div", "stack", null, el("td", null, null, tr));
+      const label = "бурение " + NF.format(r.drill) + ", ВМР " + NF.format(r.vmr) + ", простой " + NF.format(r.idle) + " сут";
+      stack.setAttribute("role", "img");
+      stack.setAttribute("aria-label", label);
+      stack.title = label;
+      for (const c of ["drill", "vmr", "idle"]) if (r[c] > 0.5) el("span", "f-" + c, null, stack).style.width = ((r[c] / maxTime) * 100).toFixed(2) + "%";
+      el("td", "num", dash(r.grp), tr);
+      el("td", "num", dash(r.vvod), tr);
+    }
+    const fr = el("tr", null, null, el("tfoot", null, null, table));
+    el("td", null, "Итого", fr);
+    el("td", "num", String(tot.started), fr);
+    el("td", "num", String(tot.finished), fr);
+    el("div", "bar-cell", null, el("td", null, null, fr)).appendChild(el("b", null, NF.format(tot.foot)));
+    el("td", "num", NF.format(tot.drill), fr);
+    el("td", "num", NF.format(tot.vmr), fr);
+    el("td", "num", NF.format(tot.idle), fr);
+    const share = tot.drill + tot.vmr + tot.idle;
+    el("td", "sub", share ? "бурение " + Math.round((tot.drill / share) * 100) + "% времени" : "", fr);
+    el("td", "num", String(tot.grp), fr);
+    el("td", "num", String(tot.vvod), fr);
+    $("year-table").replaceChildren(table);
+  }
+
+  /* ——— таблица скважин ——— */
+  function renderWellTable(ws) {
+    const table = el("table");
+    const hr = el("tr", null, null, el("thead", null, null, table));
+    const heads = [["Бригада", ""], ["Куст", ""], ["Скважина", ""], ["Стр.", "num"], ["Проходка, м", "num"], ["Бурение", ""], ["Сут", "num"], ["ГРП", ""], ["Освоение", ""], ["Ввод", ""], ["Финансирование", ""], ["Статус", ""], ["Замечания", "num"]];
+    for (const [t, c] of heads) el("th", c, t, hr).scope = "col";
+    const tb = el("tbody", null, null, table);
+    const list = RIGS.flatMap((r) => ws.filter((w) => w.rig === r).sort(bySeq));
+    const rng = (it) => (it ? fmtRange(it.s, it.e) : "—");
+    for (const w of list) {
+      const tr = el("tr", null, null, tb);
+      el("td", "nw", w.rig, tr);
+      el("td", "nw", w.pad, tr);
+      el("b", null, w.label, el("td", "nw", null, tr)).style.fontWeight = "600";
+      el("td", "num", String(w.row), tr);
+      el("td", "num", w.footage ? NF.format(w.footage) : "—", tr);
+      el("td", "nw", rng(w.bur), tr);
+      el("td", "num", NF.format(w.bur.e - w.bur.s), tr);
+      el("td", "nw", rng(w.st.grp), tr);
+      el("td", "nw", rng(w.st.osv), tr);
+      el("td", "nw", fmt(w.vvod), tr);
+      el("td", "nw" + (w.finOk ? "" : " sub"), w.fin || "—", tr);
+      el("td", "nw", w.status || "план", tr);
+      const ic = el("td", "num", null, tr);
+      const lvl = worstLevel(w);
+      if (lvl) {
+        ic.appendChild(issueIcon(lvl)).style.verticalAlign = "-4px";
+        ic.appendChild(document.createTextNode(" " + w.issues.length));
+      } else ic.textContent = "—";
+    }
+    $("well-table").replaceChildren(table);
+  }
+
+  /* ——— замечания ——— */
+  function renderIssues() {
+    const all = issuesInScope();
+    const cnt = { all: all.length, error: 0, warn: 0, info: 0 };
+    for (const it of all) cnt[it.level]++;
+    $("issues-count").textContent = "· " + all.length;
+    const seg = $("level-seg");
+    seg.replaceChildren();
+    for (const [key, text] of [["all", "Все"], ["error", LEVELS.error.tab], ["warn", LEVELS.warn.tab], ["info", LEVELS.info.tab]]) {
+      const b = el("button", null, text, seg);
+      b.type = "button";
+      el("span", null, String(cnt[key]), b);
+      b.setAttribute("aria-pressed", String(state.level === key));
+      b.addEventListener("click", function () { state.level = key; save(); renderIssues(); });
+    }
+    const list = state.level === "all" ? all : all.filter((it) => it.level === state.level);
+    const box = $("igroups");
+    box.replaceChildren();
+    if (!list.length) {
+      el("div", "no-issues", all.length ? "На этом уровне замечаний нет." : "Проверки не нашли ошибок и неточностей.", box);
+      return;
+    }
+    const groups = new Map();
+    for (const it of list) {
+      if (!groups.has(it.code)) groups.set(it.code, []);
+      groups.get(it.code).push(it);
+    }
+    const LIMIT = 6;
+    for (const code of CHECK_ORDER) {
+      const items = groups.get(code);
+      if (!items) continue;
+      const g = el("div", "igroup", null, box);
+      const h = el("div", "igroup-h", null, g);
+      h.appendChild(issueIcon(CHECKS[code].level));
+      el("b", null, CHECKS[code].title, h);
+      el("span", "n", String(items.length), h);
+      el("span", "lvl", LEVELS[CHECKS[code].level].label, h);
+      const ul = el("ul", "ilist", null, g);
+      const open = expanded.has(code);
+      for (const it of open ? items : items.slice(0, LIMIT)) {
+        const li = el("li", null, null, ul);
+        const w = it.row != null ? BY_ROW.get(it.row) : null;
+        if (it.well) {
+          if (w) {
+            const btn = el("button", "linkish", it.well, li);
+            btn.type = "button";
+            btn.addEventListener("click", () => focusWell(w));
+          } else el("b", null, it.well, li);
+          li.appendChild(document.createTextNode(": " + it.text));
+        } else li.appendChild(document.createTextNode(it.text.charAt(0).toUpperCase() + it.text.slice(1)));
+        const refs = [];
+        if (it.row != null) refs.push("стр. " + it.row);
+        if (it.cells && it.cells.length) refs.push(it.cells.join(", "));
+        if (refs.length) el("span", "ref", refs.join(" · "), li);
+      }
+      if (items.length > LIMIT) {
+        const more = el("button", "more", open ? "Свернуть" : "Показать ещё " + (items.length - LIMIT), g);
+        more.type = "button";
+        more.addEventListener("click", function () { if (open) expanded.delete(code); else expanded.add(code); renderIssues(); });
+      }
+    }
+  }
+  function issuesTSV() {
+    const all = issuesInScope();
+    const list = state.level === "all" ? all : all.filter((it) => it.level === state.level);
+    const clean = (s) => String(s == null ? "" : s).replace(/[\t\r\n]+/g, " ");
+    const lines = [["Уровень", "Проверка", "Скважина", "Бригада", "Куст", "Строка", "Ячейки", "Описание"].join("\t")];
+    for (const it of list) {
+      const w = it.row != null ? BY_ROW.get(it.row) || ORPH_BY_ROW.get(it.row) : null;
+      lines.push([LEVELS[it.level].label, CHECKS[it.code].title, it.well || "", w ? w.rig : "", w ? w.pad : "", it.row || "", (it.cells || []).join(", "), it.text].map(clean).join("\t"));
+    }
+    return lines.join("\n");
+  }
+  $("copy-issues").addEventListener("click", function () {
+    const text = issuesTSV();
+    const area = $("copy-area");
+    const fallback = function () {
+      area.replaceChildren();
+      const box = el("div", "copy-box", null, area);
+      el("div", "ok-note", "Не удалось записать в буфер обмена. Текст выделен — нажмите Ctrl+C (⌘C) и вставьте в Excel.", box);
+      const ta = el("textarea", null, null, box);
+      ta.id = "copy-text";
+      ta.value = text;
+      ta.readOnly = true;
+      ta.focus();
+      ta.select();
+    };
+    try {
+      navigator.clipboard.writeText(text).then(function () {
+        area.replaceChildren();
+        el("div", "ok-note", "Скопировано " + (text.split("\n").length - 1) + " строк — вставьте их в Excel.", area);
+      }, fallback);
+    } catch (e) { fallback(); }
+  });
+  function focusWell(w) {
+    let changed = false;
+    if (!inFilter(w)) { state.rig = "all"; state.pad = "all"; changed = true; }
+    if (state.only && !w.dated.length) { state.only = false; changed = true; }
+    if (state.view === "load") { state.view = "wells"; changed = true; }
+    if (changed) { save(); renderAll(); }
+    $("chart-card").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    if (!geom) return;
+    const scroller = $("gantt-scroll");
+    const bad = w.segs.find((s) => w.bad.has(s.k));
+    const target = bad ? bad.s : w.bur.s;
+    scroller.scrollTo({ left: Math.max(0, geom.sc.x(target) - scroller.clientWidth / 3), behavior: reduceMotion ? "auto" : "smooth" });
+    const grp = geom.root.querySelector('.w[data-w="' + w.i + '"]');
+    if (grp) {
+      grp.classList.add("flash");
+      setTimeout(() => grp.classList.remove("flash"), 2400);
+    }
+    for (const n of document.querySelectorAll(".row-lab")) n.classList.toggle("hl", n.dataset.w === String(w.i));
+  }
+
+  /* ——— подвал ——— */
+  function renderFooter() {
+    const f = $("footer");
+    f.replaceChildren();
+    el("p", null, "Столбцы ищутся по заголовкам: строка с «Куст», «Скважина», «Бурение» и подзаголовки «Дата начала», «Дата окончания», «сут» под каждым этапом. Поэтому вставка новых столбцов в лист разбору не мешает.", f);
+    el("p", null, "ВМР — вышкомонтажные работы. Светлая заливка означает «не утвержден» в столбце «Наличие финансирования». Годовые итоги проверяются только у плановых скважин: у пробуренных в них может стоять факт.", f);
+  }
+
+  /* ——— сборка ——— */
+  function renderAll(keep) {
+    $("empty").hidden = !!M;
+    $("content").hidden = !M;
+    renderFileBar();
+    if (!M) return;
+    const ws = scoped();
+    renderFilters();
+    renderStamp(ws);
+    renderLegend();
+    renderGantt(keep);
+    renderYears(ws);
+    renderWellTable(ws);
+    renderIssues();
+  }
+
+  $("open-btn").addEventListener("click", () => $("file-input").click());
+  $("empty-open").addEventListener("click", () => $("file-input").click());
+  $("file-input").addEventListener("change", function (e) {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (f) openFile(f);
+  });
+  $("sheet-select").addEventListener("change", (e) => switchSheet(e.target.value));
+  $("rig-filter").addEventListener("change", function (e) { state.rig = e.target.value; state.pad = "all"; save(); renderAll(); });
+  $("pad-filter").addEventListener("change", function (e) { state.pad = e.target.value; save(); renderAll(); });
+  $("only-issues").addEventListener("change", function (e) { state.only = e.target.checked; save(); renderAll(); });
+  $("fin-toggle").addEventListener("change", function (e) { state.fin = e.target.checked; save(); renderGantt(true); });
+  for (const b of document.querySelectorAll("[data-view]")) b.addEventListener("click", function () {
+    state.view = b.dataset.view; save(); renderLegend(); renderGantt(true);
+  });
+  for (const b of document.querySelectorAll("[data-zoom]")) b.addEventListener("click", function () {
+    state.zoom = b.dataset.zoom; save(); renderGantt(true);
+  });
+
+  const overlay = $("drop-overlay");
+  let dragDepth = 0;
+  const hasFiles = (e) => !!(e.dataTransfer && Array.from(e.dataTransfer.types || []).includes("Files"));
+  document.addEventListener("dragenter", function (e) { if (!hasFiles(e)) return; e.preventDefault(); dragDepth++; overlay.hidden = false; });
+  document.addEventListener("dragover", function (e) { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = "copy"; });
+  document.addEventListener("dragleave", function (e) { if (!hasFiles(e)) return; dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) overlay.hidden = true; });
+  document.addEventListener("drop", function (e) {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragDepth = 0;
+    overlay.hidden = true;
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) openFile(f);
+  });
+
+  let rz = 0, lastW = 0;
+  new ResizeObserver(function (entries) {
+    const wdt = Math.round(entries[0].contentRect.width);
+    if (wdt === lastW) return;
+    lastW = wdt;
+    clearTimeout(rz);
+    rz = setTimeout(() => { if (M && !$("content").hidden) renderGantt(true); }, 120);
+  }).observe(document.body);
+
+  renderFooter();
+  if (EMBED && EMBED.wells) { EMBED.embedded = true; setModel(EMBED); }
+  else renderAll();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (M) renderGantt(true); });
+  setTimeout(() => loadXLSX().catch(() => { /* повторим при открытии файла */ }), 1200);
+})();
+</script>

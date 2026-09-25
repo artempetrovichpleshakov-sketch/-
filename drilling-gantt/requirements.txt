@@ -1,1 +1,0 @@
-python-calamine>=0.2
