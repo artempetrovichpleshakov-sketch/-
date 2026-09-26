@@ -1,8 +1,10 @@
 <title>Анализ графика бурения</title>
 <meta name="description" content="Откройте Excel-график строительства скважин: диаграммы всех процессов и поиск ошибок в датах, статусах и итогах.">
+<!--fonts-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wdth,wght@75..100,400..600&display=swap">
+<!--/fonts-->
 <style>
 :root {
   --page: #eef1f3;
@@ -28,7 +30,8 @@
   --shadow: 0 10px 30px rgba(18, 26, 33, 0.14), 0 1px 2px rgba(18, 26, 33, 0.08);
   --pale: 0.4;
   --f-body: "IBM Plex Sans", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --f-cond: "IBM Plex Sans Condensed", "Roboto Condensed", "Arial Narrow", "IBM Plex Sans", "Segoe UI", sans-serif;
+  --f-cond: "IBM Plex Sans", "Roboto Condensed", "Arial Narrow", "Segoe UI", sans-serif;
+  --stretch: 87.5%;
   --lab-w: 192px;
 }
 @media (prefers-color-scheme: dark) {
@@ -81,7 +84,9 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
+  margin: 0;
   background: var(--page);
   color: var(--ink);
   font: 400 14px/1.5 var(--f-body);
@@ -337,6 +342,10 @@ footer { color: var(--muted); font-size: 12.5px; display: grid; gap: 4px; max-wi
 .tip-issue { display: flex; gap: 6px; margin-top: 7px; color: var(--ink-2); }
 .tip-issue .ic { width: 15px; height: 15px; }
 
+/* узкое начертание того же IBM Plex Sans: ось ширины, кириллица на месте */
+h1, h2, h3, .file-name, .drop-overlay div, .stamp .v, .lane-lab .n, .grp-lab, .row-lab,
+.gantt-svg text, .igroup-h b, .tip-h b, .tip-main strong { font-stretch: var(--stretch); }
+
 @media (max-width: 1040px) {
   .stamp { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .stamp > div:nth-child(3n + 1) { border-left: 0; }
@@ -461,10 +470,21 @@ footer { color: var(--muted); font-size: 12.5px; display: grid; gap: 4px; max-wi
 <div class="tip" id="tip" role="tooltip" hidden></div>
 <noscript><p style="padding:16px">Для работы страницы нужен JavaScript.</p></noscript>
 
+<!--xlsx-->
+<script>
+// Простой ES5: если основной код не запустился (старый браузер), скажем об этом.
+setTimeout(function () {
+  if (window.__appStarted) return;
+  var box = document.getElementById("file-info");
+  if (box) box.innerHTML = '<div class="file-text"><div class="file-name">Страница не запустилась в этом браузере</div>' +
+    '<div class="file-meta">Откройте её в свежей версии Chrome, Edge, Firefox или Яндекс Браузера.</div></div>';
+}, 2000);
+</script>
 <script>
 const EMBED = /*__MODEL__*/null;
 (function () {
   "use strict";
+  window.__appStarted = true;
   const XLSX_SRC = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
 
   /* ——— утилиты ——— */
@@ -1387,6 +1407,7 @@ const EMBED = /*__MODEL__*/null;
   const condFont = () => getComputedStyle(document.documentElement).getPropertyValue("--f-cond");
   function measure(text, size, weight) {
     ctx2d.font = (weight || 600) + " " + size + "px " + condFont();
+    if ("fontStretch" in ctx2d) ctx2d.fontStretch = "semi-condensed";
     return ctx2d.measureText(text).width;
   }
 

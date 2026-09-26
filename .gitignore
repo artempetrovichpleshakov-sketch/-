@@ -5,3 +5,4 @@
 *.xls
 drilling-gantt/out/
 __pycache__/
+drilling-gantt/.cache/
